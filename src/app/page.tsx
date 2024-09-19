@@ -31,28 +31,7 @@ export default function Home() {
 
   return (
     <div>
-      <h1>Test Mongoose with Next.js (TypeScript)</h1>
-      <input
-        type="text"
-        placeholder="Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <button onClick={addUser}>Add User</button>
-
-      <ul>
-        {users.map((user) => (
-          <li key={user._id}>
-            {user.name} - {user.email}
-          </li>
-        ))}
-      </ul>
+      <h1 className="font-bold text-center py-5 text-2xl">Newman Tournament App</h1>
     </div>
   );
 }
