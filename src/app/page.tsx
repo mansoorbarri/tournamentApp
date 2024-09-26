@@ -1,37 +1,35 @@
 "use client";
-
-import { useState, useEffect } from 'react';
+import { 
+  Button,
+} from "@/components/ui/button"
+import Link from "next/link";
 
 export default function Home() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [users, setUsers] = useState<any[]>([]);
-
-  const addUser = async () => {
-    const res = await fetch('/api/users', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name, email }),
-    });
-    const data = await res.json();
-    console.log(data);
-  };
-
-  const fetchUsers = async () => {
-    const res = await fetch('/api/users');
-    const data = await res.json();
-    setUsers(data);
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
   return (
-    <div>
-      <h1 className="font-bold text-center py-5 text-2xl">Newman Tournament App</h1>
-    </div>
+    <main className="bg-black text-white text-4xl font-bold mx-10 my-10 text-center">
+        <h1 >Newman Tournament App</h1>
+        <div className="my-16 flex flex-col items-center justify-center space-y-10">
+        <Link href="/participants">
+          <Button className="bg-white text-black font-bold text-lg border-white border-2 hover:bg-black hover:text-white transition-colors duration-400 w-40">
+            Participants
+          </Button>
+        </Link>
+        <Link href="/leaderboard">
+          <Button className="bg-white text-black font-bold text-lg border-white border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40">
+            Leaderboard
+          </Button>
+        </Link>
+        <Link href="/events">
+          <Button className="bg-white text-black font-bold text-lg border-white border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40">
+            Events
+          </Button>
+        </Link>
+        <Link href="/acivities">
+          <Button className="bg-white text-black font-bold text-lg border-white border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40">
+            Activities
+          </Button>
+        </Link>
+        </div>
+    </main>
   );
 }

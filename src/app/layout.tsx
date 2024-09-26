@@ -2,6 +2,8 @@
 
 import './globals.css';
 import { ReactNode } from 'react';
+import { GeistSans } from 'geist/font/sans';
+import Footer from '@/app/components/footer';
 
 export const metadata = {
   title: "Newman Tournament App",
@@ -11,7 +13,12 @@ export const metadata = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="bg-black text-white font-sans">
+        <div>
+          {children}
+        </div>
+      <Footer />
+      </body>
     </html>
   );
 }
