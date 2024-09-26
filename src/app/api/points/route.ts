@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/app/lib/dbConnect';
-import Point from '@/app/models/tblPoints';
+import connectDB from '@/lib/dbConnect';
+import Point from '@/models/tblPoints';
 
 export async function POST(request: Request) {
   await connectDB();
@@ -24,6 +24,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Point added', data: savedPoint }, { status: 201 });
   } catch (error) {
     console.error('Error adding point:', error);
-    return NextResponse.json({ message: 'Error adding point', error: error.message }, { status: 500 });
+    return NextResponse.json({ message: 'Error adding point', error }, { status: 500 });
   }
 }

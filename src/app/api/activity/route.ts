@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/app/lib/dbConnect';
-import Activity from '@/app/models/tblActivity';
+import connectDB from '@/lib/dbConnect';
+import Activity from '@/models/tblActivity';
 
 export async function POST(request: Request) {
   await connectDB();
@@ -18,6 +18,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Activity added', data: savedActivity }, { status: 201 });
   } catch (error) {
     console.error('Error adding activity:', error);
-    return NextResponse.json({ message: 'Error adding activity', error: error.message }, { status: 500 });
+    return NextResponse.json({ message: 'Error adding activity', error }, { status: 500 });
   }
 }

@@ -9,12 +9,12 @@ const config: Config = {
   ],
   theme: {
   	extend: {
-		fontFamily: {
-			sans: ['Quicksand', 'sans-serif'],
-			mono: ['GeistMono', 'monospace'],
-		  },
+  		fontFamily: {
+  			sans: ['Quicksand', 'sans-serif'],
+  			mono: ['GeistMono', 'monospace']
+  		},
   		colors: {
-			mid: "#27262a",
+  			mid: '#27262a',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

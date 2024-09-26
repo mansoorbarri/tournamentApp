@@ -2,7 +2,6 @@
 
 import './globals.css';
 import { ReactNode } from 'react';
-import { GeistSans } from 'geist/font/sans';
 import Footer from '@/app/components/footer';
 
 export const metadata = {

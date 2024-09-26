@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/app/lib/dbConnect';
-import Event from '@/app/models/tblEvents';
+import connectDB from '@/lib/dbConnect';
+import Event from '@/models/tblEvents';
 
 export async function POST(request: Request) {
   await connectDB();
@@ -18,6 +18,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Event added', data: savedEvent }, { status: 201 });
   } catch (error) {
     console.error('Error adding event:', error);
-    return NextResponse.json({ message: 'Error adding event', error: error.message }, { status: 500 });
+    return NextResponse.json({ message: 'Error adding event', error }, { status: 500 });
   }
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/app/lib/dbConnect';
-import EventType from '@/app/models/tblEventType';
+import connectDB from '@/lib/dbConnect';
+import EventType from '@/models/tblEventType';
 
 export async function POST(request: Request) {
   await connectDB();
@@ -18,6 +18,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Event type added', data: savedEventType }, { status: 201 });
   } catch (error) {
     console.error('Error adding event type:', error);
-    return NextResponse.json({ message: 'Error adding event type', error: error.message }, { status: 500 });
+    return NextResponse.json({ message: 'Error adding event type', error }, { status: 500 });
   }
 }
