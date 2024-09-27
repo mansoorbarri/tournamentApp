@@ -7,16 +7,15 @@ export async function POST(request: Request) {
 
   try {
     // Parse the request body
-    const { participantsID, forename, surname, teamName, participantsType } = await request.json();
+    const { forename, surname, teamName, participantsType } = await request.json();
 
     // Validate fields
-    if (!participantsID || !forename || !surname || !teamName || !participantsType) {
+    if ( !forename || !surname || !teamName || !participantsType) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
     // Create a new participant
     const newParticipant = new Participant({
-      participantsID,
       forename,
       surname,
       teamName,

@@ -1,14 +1,24 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const connectDB = async () => {
-  if (mongoose.connections[0].readyState) return;
-
-  try {
-    await mongoose.connect(process.env.MONGODB_URI!); 
-    console.log('MongoDB connected');
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-  }
+type ConnectionObject = {
+    isConnected?: number;
 };
+const connection: ConnectionObject = {};
+
+async function connectDB() : Promise<void> {
+    if (connection.isConnected) {
+        console.log("Already connected with DB");
+        return;
+    }
+    try {
+        const db = await mongoose.connect(process.env.MONGODB_URI || "", {});
+        connection.isConnected = db.connections[0].readyState;
+        console.log("Connected with DB");
+        return;
+    } catch (error) {
+        console.log("Error connecting with DB", error);
+        process.exit(1);
+    }
+}
 
 export default connectDB;
