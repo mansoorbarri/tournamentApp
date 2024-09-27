@@ -3,6 +3,7 @@
 import './globals.css';
 import { ReactNode } from 'react';
 import Footer from '@/app/components/footer';
+import { Toaster } from '@/components/ui/toaster';
 
 export const metadata = {
   title: "Newman Tournament App",
@@ -13,9 +14,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body className="bg-black text-white font-sans">
-        <div>
-          {children}
-        </div>
+        {children}
+        <Toaster />
       <Footer />
       </body>
     </html>
