@@ -46,7 +46,7 @@ export default function DeleteParticipant() {
               title: 'Error deleting participant',
               description: errorData.message,
               duration: 5000,
-              variant: 'error',
+              variant: 'destructive',
             });
           });
         }
@@ -55,7 +55,7 @@ export default function DeleteParticipant() {
             title: 'Participant deleted successfully!',
             description: data.message,
             duration: 2000,
-            variant: 'success',
+            variant: 'default',
           });
           // Reset the form after successful deletion
           deleteForm.reset();
@@ -65,9 +65,9 @@ export default function DeleteParticipant() {
         console.error('Error deleting participant.', error);
         toast({
           title: 'Error deleting participant',
-          description: error.message,
+          description: "please try again later.", 
           duration: 5000,
-          variant: 'error',
+          variant: 'destructive',
         });
       });
   }

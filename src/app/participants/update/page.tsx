@@ -65,7 +65,7 @@ export default function AddParticipant() {
     } catch (error) {
       toast({
         title: 'Error updating participant',
-        description: error, // Show error message properly
+        description: "please try again",
         duration: 5000,
         variant: 'destructive', // Fixed typo
       });

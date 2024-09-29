@@ -39,7 +39,7 @@ export default function ParticipantsPage() {
       } catch (error) {
         toast({
           title: "Error fetching participants",
-          description: error, // Use error.message for better readability
+          description: "Please try again later.",
           duration: 5000,
           variant: "destructive",
         });
