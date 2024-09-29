@@ -33,13 +33,10 @@ export default function AddParticipant() {
     },
   });
 
-  const [searchTerm, setSearchTerm] = useState("");
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    // Update participant API call
     try {
       const response = await fetch('/api/participants', {
-        method: 'PUT',
+        method: 'PUT', // Ensure this matches your API route
         headers: {
           'Content-Type': 'application/json',
         },
@@ -68,16 +65,16 @@ export default function AddParticipant() {
     } catch (error) {
       toast({
         title: 'Error updating participant',
-        description: error,
+        description: error.message, // Show error message properly
         duration: 5000,
-        variant: 'descructive',
+        variant: 'destructive', // Fixed typo
       });
     }
   };
 
   return (
     <main className="bg-black text-white text-4xl font-bold mx-10 my-10 text-center">
-      <h1 className="tracking-wide">update participant information</h1>
+      <h1 className="tracking-wide">Update Participant Information</h1>
       <div className="my-16 flex flex-col items-center justify-center space-y-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="">

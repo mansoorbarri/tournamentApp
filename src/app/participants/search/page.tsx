@@ -79,7 +79,7 @@ export default function AddParticipant() {
     } catch (error) {
       toast({
         title: 'Error fetching participants',
-        description: error.toString(),
+        description: error,
         duration: 5000,
         variant: 'destructive',
       });
