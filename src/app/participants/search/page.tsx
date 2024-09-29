@@ -9,7 +9,6 @@ import {
   FormField,
   FormItem,
 } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import Link from "next/link";
@@ -18,86 +17,89 @@ import { useToast } from "@/hooks/use-toast";
 const formSchema = z.object({
   forename: z.string().min(2, { message: 'Forename must be at least 2 characters long.' }).max(50),
   surname: z.string().min(2, { message: 'Surname must be at least 2 characters long.' }).max(50),
-  teamName: z.string().min(2, { message: 'Team name must be at least 2 characters long.' }).max(50),
-  participantsType: z.string().min(1, { message: 'Please select a participants type.' }),
+  teamName: z.string().optional(),
+  participantsType: z.string().optional(),
 });
 
 export default function AddParticipant() {
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      forename: '',
+      surname: '',
+      teamName: '',
+      participantsType: '',
+    },
   });
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  const participantsTypes = ["M", "S"];
-
-  const filteredParticipantsTypes = participantsTypes.filter(type =>
-    type.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Check for form validation errors
-    const errors = form.formState.errors;
-    if (Object.keys(errors).length > 0) {
-      Object.values(errors).forEach((error) => {
-        console.error(error.message as string);
-      });
-      return;
-    }
-  
-    // Submit the form data to the server
-    fetch('/api/participants', {
-      method: 'POST',
+    const queryParams = new URLSearchParams({
+      forename: values.forename,
+      surname: values.surname,
+    }).toString();
+
+    fetch(`/api/participants?${queryParams}`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        forename: values.forename,
-        surname: values.surname,
-        teamName: values.teamName,
-        participantsType: values.participantsType,
-      }),
     })
       .then((response) => {
         if (!response.ok) {
           return response.json().then((errorData) => {
-            console.error(`Error adding participant: ${errorData.message}`);
             toast({
-              title: 'Error adding participant',
-              description: errorData,
+              title: 'Error fetching participants',
+              description: errorData.message,
               duration: 5000,
-              variant: 'destructive',
-            })
+              variant: 'destructive'
+            });
           });
         }
-        return response.json().then((data) => {
-          console.log('Participant added successfully!');
+        return response.json();
+      })
+      .then((data) => {
+        console.log('API Response:', data);
+
+        if (data && data.data && data.data.length > 0) {
+          const participant = data.data[0]; // Access the first participant
+
+          // Populate form fields with fetched data
+          form.setValue('forename', participant.forename || '');
+          form.setValue('surname', participant.surname || '');
+          form.setValue('teamName', participant.teamName || '');
+          form.setValue('participantsType', participant.participantsType || '');
+
           toast({
-            title: 'Participant added successfully!',
-            description: 'You can now view your participants',
+            title: 'Participant fetched successfully!',
+            description: 'Form fields updated.',
             duration: 2000,
             variant: 'default',
-          })
-          setTimeout(() => {
-            window.location.href = '/participants';
-          }, 1000);
-        });
+          });
+        } else {
+          toast({
+            title: 'No participant found',
+            description: 'The participant was not found.',
+            duration: 3000,
+            variant: 'destructive',
+          });
+        }
       })
       .catch((error) => {
-        console.error('Error submitting form.', error);
         toast({
-          title: 'Error adding participant',
-          description: error,
+          title: 'Error fetching participants',
+          description: error.toString(),
           duration: 5000,
           variant: 'destructive',
-        })
+        });
       });
   }
-  
+
   return (
     <main className="bg-black text-white text-4xl font-bold mx-10 my-10 text-center">
-      <h1 className="tracking-wide">add a participant</h1>
+      <h1 className="tracking-wide">search a participant</h1>
       <div className="my-16 flex flex-col items-center justify-center space-y-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="">
@@ -152,27 +154,11 @@ export default function AddParticipant() {
               render={({ field }) => (
                 <FormItem className="mb-4 ">
                   <FormControl>
-                    <Select {...field} value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-72 h-12 rounded-xl bg-white text-mid">
-                        <SelectValue placeholder="participant type" className=''/>
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        <div className="p-2">
-                          <Input
-                            type="text"
-                            placeholder="Search..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="mb-2 rounded-lg text-black"
-                          />
-                        </div>
-                        {filteredParticipantsTypes.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      placeholder="Participant Type"
+                      {...field}
+                      className="w-72 h-12 rounded-xl text-black"
+                    />
                   </FormControl>
                 </FormItem>
               )}

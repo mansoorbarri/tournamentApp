@@ -46,7 +46,7 @@ export default function DeleteParticipant() {
               title: 'Error deleting participant',
               description: errorData.message,
               duration: 5000,
-              variant: 'destructive',
+              variant: 'error',
             });
           });
         }
@@ -55,7 +55,7 @@ export default function DeleteParticipant() {
             title: 'Participant deleted successfully!',
             description: data.message,
             duration: 2000,
-            variant: 'default',
+            variant: 'success',
           });
           // Reset the form after successful deletion
           deleteForm.reset();
@@ -65,9 +65,9 @@ export default function DeleteParticipant() {
         console.error('Error deleting participant.', error);
         toast({
           title: 'Error deleting participant',
-          description: error,
+          description: error.message,
           duration: 5000,
-          variant: 'destructive',
+          variant: 'error',
         });
       });
   }
@@ -125,7 +125,7 @@ export default function DeleteParticipant() {
                 </FormItem>
               )}
             />
-            <Button className="bg-red-500 text-white font-bold text-lg border-red-500 border-2 transition-colors duration-400 hover:bg-black hover:text-red-500 w-44 mt-6">
+            <Button className="bg-red-500 text-white font-bold text-lg border-white border-2 transition-colors duration-400 hover:bg-black hover:text-white w-46 mt-6">
               Delete Participant
             </Button>
           </form>
