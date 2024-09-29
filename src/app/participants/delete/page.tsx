@@ -128,6 +128,7 @@ export default function DeleteParticipant() {
             <Button className="bg-red-500 text-white font-bold text-lg border-white border-2 transition-colors duration-400 hover:bg-black hover:text-white w-46 mt-6">
               Delete Participant
             </Button>
+            
           </form>
         </Form>
       </div>

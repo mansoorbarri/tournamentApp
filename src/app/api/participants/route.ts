@@ -34,29 +34,31 @@ export async function POST(request: Request) {
   }
 }
 
-
 export async function GET(request: NextRequest) {
   await connectDB();
 
-  // Extract query parameters using searchParams
-  const { searchParams } = request.nextUrl;
-  const surname = searchParams.get('surname');
-  const forename = searchParams.get('forename');
-  const teamName = searchParams.get('teamName');
-  const participantsType = searchParams.get('participantsType');
-
   try {
-      const participants = await Participant.find({
-          surname,
-          forename,
-          teamName,
-          participantsType,
-      });
-      return NextResponse.json({ message: 'Participants fetched successfully', data: participants });
+    // Parse query parameters from the request URL
+    const { searchParams } = new URL(request.url);
+    const surname = searchParams.get('surname');
+    const forename = searchParams.get('forename');
+    const teamName = searchParams.get('teamName');
+    const participantsType = searchParams.get('participantsType');
+
+    // Fetch participants from the database based on query parameters
+    const participants = await Participant.find({
+      ...(surname && { surname }),
+      ...(forename && { forename }),
+      ...(teamName && { teamName }),
+      ...(participantsType && { participantsType }),
+    });
+
+    return NextResponse.json({ message: 'Participants fetched successfully', data: participants });
   } catch (error) {
-      return NextResponse.json({ message: 'Error fetching participants', error }, { status: 500 });
+    return NextResponse.json({ message: 'Error fetching participants', error }, { status: 500 });
   }
 }
+
 
 export async function PUT(req: NextRequest) {
   await connectDB(); // Connect to MongoDB
