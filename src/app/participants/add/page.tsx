@@ -67,7 +67,7 @@ export default function AddParticipant() {
               title: 'Error adding participant',
               description: errorData,
               duration: 5000,
-              variant: 'error',
+              variant: 'destructive',
             })
           });
         }
@@ -77,7 +77,7 @@ export default function AddParticipant() {
             title: 'Participant added successfully!',
             description: 'You can now view your participants',
             duration: 2000,
-            variant: 'success',
+            variant: 'default',
           })
           setTimeout(() => {
             window.location.href = '/participants';
@@ -90,7 +90,7 @@ export default function AddParticipant() {
           title: 'Error adding participant',
           description: error,
           duration: 5000,
-          variant: 'error',
+          variant: 'destructive',
         })
       });
   }
