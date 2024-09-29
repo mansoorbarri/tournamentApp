@@ -177,16 +177,19 @@ export default function AddParticipant() {
                 </FormItem>
               )}
             />
-            <Button className="bg-white text-black font-bold text-lg border-white border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40 mt-6">
+          <div className="mt-6 flex justify-center flex-col items-center space-y-2">
+            <Button className="bg-white text-black font-bold text-lg border-white border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40">
               Submit
             </Button>
+            <Link href="/">
+              <Button className="bg-mid text-white font-bold text-lg border-mid border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40">
+                Main Menu
+              </Button>
+            </Link>
+          </div>
+
           </form>
         </Form>
-        <Link href="/">
-          <Button className="bg-mid text-white font-bold text-lg border-mid border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40">
-            Main Menu
-          </Button>
-        </Link>
       </div>
     </main>
   );

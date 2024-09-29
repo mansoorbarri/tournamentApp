@@ -38,6 +38,9 @@ importers:
       geist:
         specifier: ^1.3.1
         version: 1.3.1(next@14.2.12(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+      heroicons-react:
+        specifier: ^1.4.1
+        version: 1.4.1(react@18.3.1)
       input:
         specifier: ^1.0.1
         version: 1.0.1
@@ -1191,6 +1194,12 @@ packages:
   hasown@2.0.2:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
+
+  heroicons-react@1.4.1:
+    resolution: {integrity: sha512-lFB8N44eeju73p5IjaeRrRejXsWWjsmeLK1LQrXGI5UnV9qvkzk2VZoMx5HKLnp1xJI4i9pFh/g2uRc7M1jrjQ==}
+    deprecated: 'Official Heroicons V1 released. Please use the following for future projects: https://www.npmjs.com/package/@heroicons/react'
+    peerDependencies:
+      react: '>=16.13'
 
   https-proxy-agent@6.2.1:
     resolution: {integrity: sha512-ONsE3+yfZF2caH5+bJlcddtWqNI3Gvs5A38+ngvljxaBiRXRswym2c7yf8UAeFpRFKjFNHIFEHqR/OLAWJzyiA==}
@@ -3213,6 +3222,10 @@ snapshots:
   hasown@2.0.2:
     dependencies:
       function-bind: 1.1.2
+
+  heroicons-react@1.4.1(react@18.3.1):
+    dependencies:
+      react: 18.3.1
 
   https-proxy-agent@6.2.1:
     dependencies:

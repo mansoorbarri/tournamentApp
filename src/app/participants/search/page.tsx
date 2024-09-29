@@ -33,62 +33,74 @@ export default function AddParticipant() {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      const response = await fetch(`/api/participants?surname=${values.surname}&forename=${values.forename}`, {
-        method: 'GET',
-      });
+  const [searchTerm, setSearchTerm] = useState("");
 
-      if (!response.ok) {
-        const errorData = await response.json();
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    fetch(`/api/participants`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        forename: values.forename,
+        surname: values.surname,
+        teamName: values.teamName,
+        participantsType: values.participantsType,
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((errorData) => {
+            toast({
+              title: 'Error fetching participants',
+              description: errorData.message,
+              duration: 5000,
+              variant: 'destructive',
+            });
+          });
+        }
+        return response.json();
+      })
+      .then((data) => {
+        console.log('API Response:', data);
+
+        if (data && data.data && data.data.length > 0) {
+          const participant = data.data[0]; // Access the first participant
+
+          // Populate form fields with fetched data
+          form.setValue('forename', participant.forename || '');
+          form.setValue('surname', participant.surname || '');
+          form.setValue('teamName', participant.teamName || '');
+          form.setValue('participantsType', participant.participantsType || '');
+
+          toast({
+            title: 'Participant fetched successfully!',
+            description: 'Form fields updated.',
+            duration: 2000,
+            variant: 'default',
+          });
+        } else {
+          toast({
+            title: 'No participant found',
+            description: 'The participant was not found.',
+            duration: 3000,
+            variant: 'destructive',
+          });
+        }
+      })
+      .catch((error) => {
         toast({
           title: 'Error fetching participants',
-          description: errorData.message,
+          description: error.toString(),
           duration: 5000,
           variant: 'destructive',
         });
-        return;
-      }
-
-      const data = await response.json();
-      console.log('API Response:', data);
-
-      if (data && data.data && data.data.length > 0) {
-        const participant = data.data[0]; // Access the first participant
-
-        // Populate form fields with fetched data
-        form.setValue('forename', participant.forename || '');
-        form.setValue('surname', participant.surname || '');
-        form.setValue('teamName', participant.teamName || '');
-        form.setValue('participantsType', participant.participantsType || '');
-
-        toast({
-          title: 'Participant fetched successfully!',
-          description: 'Form fields updated.',
-          duration: 2000,
-          variant: 'default',
-        });
-      } else {
-        toast({
-          title: 'No participant found',
-          description: 'The participant was not found.',
-          duration: 3000,
-          variant: 'destructive',
-        });
-      }
-    } catch (error) {
-      toast({
-        title: 'Error fetching participants',
-        description: error,
-        duration: 5000,
-        variant: 'destructive',
       });
-    }
-  };
+  }
 
   return (
     <main className="bg-black text-white text-4xl font-bold mx-10 my-10 text-center">
-      <h1 className="tracking-wide">Search a Participant</h1>
+      <h1 className="tracking-wide">search a participant</h1>
       <div className="my-16 flex flex-col items-center justify-center space-y-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="">
@@ -102,11 +114,6 @@ export default function AddParticipant() {
                       placeholder="Forename"
                       {...field}
                       className="w-72 h-12 rounded-xl text-black"
-                      onChange={(e) => {
-                        field.onChange(e);
-                        form.setValue('teamName', '');
-                        form.setValue('participantsType', '');
-                      }}
                     />
                   </FormControl>
                 </FormItem>
@@ -122,11 +129,6 @@ export default function AddParticipant() {
                       placeholder="Surname"
                       {...field}
                       className="w-72 h-12 rounded-xl text-black"
-                      onChange={(e) => {
-                        field.onChange(e);
-                        form.setValue('teamName', '');
-                        form.setValue('participantsType', '');
-                      }}
                     />
                   </FormControl>
                 </FormItem>
@@ -142,7 +144,6 @@ export default function AddParticipant() {
                       placeholder="Team Name"
                       {...field}
                       className="w-72 h-12 rounded-xl text-black"
-                      readOnly
                     />
                   </FormControl>
                 </FormItem>
@@ -158,14 +159,13 @@ export default function AddParticipant() {
                       placeholder="Participant Type"
                       {...field}
                       className="w-72 h-12 rounded-xl text-black"
-                      readOnly
                     />
                   </FormControl>
                 </FormItem>
               )}
             />
             <Button className="bg-white text-black font-bold text-lg border-white border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40 mt-6">
-              Search
+              Submit
             </Button>
           </form>
         </Form>
