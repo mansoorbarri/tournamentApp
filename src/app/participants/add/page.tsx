@@ -37,63 +37,51 @@ export default function AddParticipant() {
   );
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Check for form validation errors
-    const errors = form.formState.errors;
-    if (Object.keys(errors).length > 0) {
-      Object.values(errors).forEach((error) => {
-        console.error(error.message as string);
-      });
-      return;
-    }
-  
-    // Submit the form data to the server
-    fetch('/api/participants', {
+    fetch(`/api/participants`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        forename: values.forename,
-        surname: values.surname,
-        teamName: values.teamName,
-        participantsType: values.participantsType,
-      }),
+      body: JSON.stringify(values), // Directly use the form values
     })
       .then((response) => {
         if (!response.ok) {
           return response.json().then((errorData) => {
-            console.error(`Error adding participant: ${errorData.message}`);
             toast({
               title: 'Error adding participant',
-              description: errorData,
+              description: errorData.message || 'An unexpected error occurred',
               duration: 5000,
               variant: 'destructive',
-            })
+            });
           });
         }
-        return response.json().then((data) => {
-          console.log('Participant added successfully!');
+        return response.json();
+      })
+      .then((data) => {
+        // Ensure the data structure matches your expectations
+        if (data && data.message === 'Participant added') {
           toast({
-            title: 'Participant added successfully!',
-            description: 'You can now view your participants',
+            title: 'Success!',
+            description: 'Participant added successfully.',
             duration: 2000,
             variant: 'default',
-          })
-          setTimeout(() => {
-            window.location.href = '/participants';
-          }, 1000);
-        });
+          });
+  
+          // Optionally, reset the form fields after successful submission
+          form.reset();
+        }
       })
       .catch((error) => {
-        console.error('Error submitting form.', error);
         toast({
           title: 'Error adding participant',
-          description: error,
+          description: error.message || 'An unexpected error occurred',
           duration: 5000,
           variant: 'destructive',
-        })
+        });
       });
   }
+  
+  
   
   return (
     <main className="bg-black text-white text-4xl font-bold mx-10 my-10 text-center">

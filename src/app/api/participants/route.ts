@@ -12,8 +12,18 @@ export async function POST(request: Request) {
     const { forename, surname, teamName, participantsType } = await request.json();
 
     // Validate fields
-    if ( !forename || !surname || !teamName || !participantsType) {
+    if (!forename || !surname || !teamName || !participantsType) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Check if a participant with the same forename and surname exists
+    const existingParticipant = await Participant.findOne({ forename, surname });
+
+    if (existingParticipant) {
+      return NextResponse.json(
+        { message: 'Participant with the same forename and surname already exists' },
+        { status: 409 } // Conflict status code
+      );
     }
 
     // Create a new participant
@@ -27,10 +37,16 @@ export async function POST(request: Request) {
     // Save the participant to the database
     const savedParticipant = await newParticipant.save();
 
-    return NextResponse.json({ message: 'Participant added', data: savedParticipant }, { status: 201 });
+    return NextResponse.json(
+      { message: 'Participant added', data: savedParticipant },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error adding participant:', error);
-    return NextResponse.json({ message: 'Error adding participant', error }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Error adding participant', error },
+      { status: 500 }
+    );
   }
 }
 

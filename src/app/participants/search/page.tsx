@@ -33,16 +33,18 @@ export default function AddParticipant() {
     },
   });
 
-  const [searchTerm, setSearchTerm] = useState("");
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    const params = new URLSearchParams({
-      forename: values.forename,
-      surname: values.surname,
-      teamName: values.teamName,
-      participantsType: values.participantsType,
-    }).toString();
-
+  // Define the onSubmit function to handle form submission
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    // Create a new URLSearchParams instance and filter out undefined values
+    const params = new URLSearchParams(
+      Object.entries({
+        forename: values.forename,
+        surname: values.surname,
+        teamName: values.teamName || '',  // Default to empty string if undefined
+        participantsType: values.participantsType || '', // Default to empty string if undefined
+      }).filter(([_, v]) => v)  // Only include entries with truthy values
+    ).toString();
+  
     fetch(`/api/participants?${params}`, {
       method: 'GET', // Changed to GET
       headers: {
@@ -64,16 +66,16 @@ export default function AddParticipant() {
       })
       .then((data) => {
         console.log('API Response:', data);
-
+  
         if (data && data.data && data.data.length > 0) {
           const participant = data.data[0]; // Access the first participant
-
+  
           // Populate form fields with fetched data
           form.setValue('forename', participant.forename || '');
           form.setValue('surname', participant.surname || '');
           form.setValue('teamName', participant.teamName || '');
           form.setValue('participantsType', participant.participantsType || '');
-
+  
           toast({
             title: 'Participant fetched successfully!',
             description: 'Form fields updated.',
@@ -97,11 +99,12 @@ export default function AddParticipant() {
           variant: 'destructive',
         });
       });
-  }
+  };
+  
 
   return (
     <main className="bg-black text-white text-4xl font-bold mx-10 my-10 text-center">
-      <h1 className="tracking-wide">search a participant</h1>
+      <h1 className="tracking-wide">Search a Participant</h1>
       <div className="my-16 flex flex-col items-center justify-center space-y-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="">
@@ -165,7 +168,7 @@ export default function AddParticipant() {
                 </FormItem>
               )}
             />
-            <Button className="bg-white text-black font-bold text-lg border-white border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40 mt-6">
+            <Button type="submit" className="bg-white text-black font-bold text-lg border-white border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40 mt-6">
               Submit
             </Button>
           </form>
