@@ -36,17 +36,18 @@ export default function AddParticipant() {
   const [searchTerm, setSearchTerm] = useState("");
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    fetch(`/api/participants`, {
-      method: 'POST',
+    const params = new URLSearchParams({
+      forename: values.forename,
+      surname: values.surname,
+      teamName: values.teamName,
+      participantsType: values.participantsType,
+    }).toString();
+
+    fetch(`/api/participants?${params}`, {
+      method: 'GET', // Changed to GET
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        forename: values.forename,
-        surname: values.surname,
-        teamName: values.teamName,
-        participantsType: values.participantsType,
-      }),
     })
       .then((response) => {
         if (!response.ok) {
