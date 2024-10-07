@@ -6,7 +6,6 @@ interface IEvent extends Document {
   activityID: string;
   rankID: string;
   eventTypeID: string;
-  date: Date;
 }
 
 const EventSchema: Schema = new Schema({
@@ -15,7 +14,6 @@ const EventSchema: Schema = new Schema({
   activityID: { type: Schema.Types.ObjectId, ref: 'Activity', required: true },
   rankID: { type: Schema.Types.ObjectId, ref: 'Point', required: true },
   eventTypeID: { type: Schema.Types.ObjectId, ref: 'EventType', required: true },
-  date: { type: Date, required: true }
 });
 
 export default mongoose.models.Event || mongoose.model<IEvent>('Event', EventSchema);
