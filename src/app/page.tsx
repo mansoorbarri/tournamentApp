@@ -14,14 +14,14 @@ export default function Home() {
             Participants
           </Button>
         </Link>
-        <Link href="/leaderboard">
-          <Button className="bg-white text-black font-bold text-lg border-white border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40">
-            Leaderboard
-          </Button>
-        </Link>
         <Link href="/events">
           <Button className="bg-white text-black font-bold text-lg border-white border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40">
             Events
+          </Button>
+        </Link>
+        <Link href="/leaderboard">
+          <Button className="bg-white text-black font-bold text-lg border-white border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40">
+            Leaderboard
           </Button>
         </Link>
         <Link href="/acivities">
