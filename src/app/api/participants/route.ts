@@ -9,46 +9,65 @@ export async function POST(request: Request) {
 
   try {
     // Parse the request body
-    const { forename, surname, teamName, participantsType } = await request.json();
+    const { id, forename, surname, teamName, participantsType } = await request.json();
 
     // Validate fields
     if (!forename || !surname || !teamName || !participantsType) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
-    // Check if a participant with the same forename and surname exists
-    const existingParticipant = await Participant.findOne({ forename, surname });
+    if (id) {
+      // If `id` is provided, update the existing participant
+      const updatedParticipant = await Participant.findByIdAndUpdate(
+        id,
+        { forename, surname, teamName, participantsType },
+        { new: true } // Return the updated document
+      );
 
-    if (existingParticipant) {
+      if (!updatedParticipant) {
+        return NextResponse.json({ message: 'Participant not found' }, { status: 404 });
+      }
+
       return NextResponse.json(
-        { message: 'Participant with the same forename and surname already exists' },
-        { status: 409 } // Conflict status code
+        { message: 'Participant updated', data: updatedParticipant },
+        { status: 200 }
+      );
+    } else {
+      // Check if a participant with the same forename and surname exists
+      const existingParticipant = await Participant.findOne({ forename, surname });
+
+      if (existingParticipant) {
+        return NextResponse.json(
+          { message: 'Participant with the same forename and surname already exists' },
+          { status: 409 } // Conflict status code
+        );
+      }
+
+      // Create a new participant
+      const newParticipant = new Participant({
+        forename,
+        surname,
+        teamName,
+        participantsType,
+      });
+
+      // Save the participant to the database
+      const savedParticipant = await newParticipant.save();
+
+      return NextResponse.json(
+        { message: 'Participant added', data: savedParticipant },
+        { status: 201 }
       );
     }
-
-    // Create a new participant
-    const newParticipant = new Participant({
-      forename,
-      surname,
-      teamName,
-      participantsType,
-    });
-
-    // Save the participant to the database
-    const savedParticipant = await newParticipant.save();
-
-    return NextResponse.json(
-      { message: 'Participant added', data: savedParticipant },
-      { status: 201 }
-    );
   } catch (error) {
-    console.error('Error adding participant:', error);
+    console.error('Error adding/updating participant:', error);
     return NextResponse.json(
-      { message: 'Error adding participant', error },
+      { message: 'Error processing request', error },
       { status: 500 }
     );
   }
 }
+
 
 export async function GET(request: NextRequest) {
   await connectDB();
