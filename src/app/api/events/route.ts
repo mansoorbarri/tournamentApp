@@ -109,3 +109,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Error adding event", error }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  await dbConnect(); // Connect to your database
+
+  if (req.method === 'DELETE') {
+    const { _id } = req.body; // Extract _id from the request body
+
+    try {
+      const deletedEvent = await Event.findByIdAndDelete(_id); // Use findByIdAndDelete with _id
+      if (!deletedEvent) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+      return res.status(200).json({ message: "Event deleted successfully" });
+    } catch (error) {
+      return res.status(500).json({ message: "Error deleting event", error: error.message });
+    }
+  } else {
+    // Handle other methods (GET, POST, etc.)
+    res.setHeader('Allow', ['DELETE']);
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
+  }
+}

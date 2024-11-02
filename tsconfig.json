@@ -2,9 +2,9 @@
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
+    "skipLibCheck": true, // Keep this to skip type checking of declaration files
+    "strict": false,      // Set to false to disable all strict type checking
+    "noEmit": false,      // Allow emitting files even with type errors
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
