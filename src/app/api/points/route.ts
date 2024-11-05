@@ -27,3 +27,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Error adding point', error }, { status: 500 });
   }
 }
+
+export async function GET(request: Request) {
+  await connectDB();
+
+  try {
+    // Fetch all points from the database
+    const points = await Point.find({});
+
+    // Log the fetched points for debugging
+    console.log('Fetched points:', points);
+
+    return NextResponse.json({ message: 'Points fetched successfully', data: points }, { status: 200 });
+  } catch (error) {
+    console.error('Error fetching points:', error);
+    return NextResponse.json({ message: 'Error fetching points', error }, { status: 500 });
+  }
+}

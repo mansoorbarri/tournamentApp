@@ -1,133 +1,159 @@
-import { NextResponse } from "next/server";
-import connectDB from "@/lib/dbConnect";
-import Event from "@/models/tblEvents";
-import Participant from "@/models/tblParticipants";
-import Activity from "@/models/tblActivity";
-import Points from "@/models/tblPoints";
-import EventType from "@/models/tblEventType";
+// src/app/api/events/route.ts
+import dbConnect from '@/lib/dbConnect';
+import Event from '@/models/tblEvents';
 
-export async function GET() {
-  await connectDB();
 
+export async function POST(req: Request) {
   try {
-    // Fetch options for each dropdown
-    const participants = await Participant.find({}, "forename surname").lean();
-    const activities = await Activity.find({}, "description").lean();
-    const ranks = await Points.find({}, "rankID description").lean();
-    const eventTypes = await EventType.find({}, "eventType description").lean();
+    await dbConnect();
 
-    return NextResponse.json({
-      participants: participants.map(p => ({ id: p._id, name: `${p.forename} ${p.surname}` })),
-      activities: activities.map(a => ({ id: a._id, description: a.description })),
-      ranks: ranks.map(r => ({ id: r._id, rankID: r.rankID, description: r.description })),
-      eventTypes: eventTypes.map(e => ({ id: e._id, eventType: e.eventType, description: e.description })),
+    const body = await req.json();
+
+    // Create a new Event document
+    const newEvent = new Event({
+      eventID: body.eventID,
+      participantsID: body.participantsID,
+      activityID: body.activityID,
+      rankID: body.rankID,
+      eventTypeID: body.eventTypeID,
+      date: new Date(body.date),
     });
-  } catch (error) {
-    console.error("Error fetching options:", error);
-    return NextResponse.json({ message: "Error fetching options", error }, { status: 500 });
-  }
-}
 
-// Existing POST function for adding an event
-export async function POST(request: Request) {
-  await connectDB();
-
-  try {
-    const {
-      eventID,
-      firstName,
-      lastName,
-      activityDescription,
-      rankID,
-      rankDescription,
-      eventTypeID,
-      eventTypeDescription,
-    } = await request.json();
-
-    // Check if required fields are provided
-    if (!eventID || !firstName || !lastName || !activityDescription || (!rankID && !rankDescription) || (!eventTypeID && !eventTypeDescription)) {
-      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
-    }
-
-    // Find participant by first and last name
-    const participant = await Participant.findOne({ forename: firstName, surname: lastName });
-
-    if (!participant) {
-      return NextResponse.json({ message: "Participant not found" }, { status: 404 });
-    }
-
-    // Find activity by description
-    const activity = await Activity.findOne({ description: activityDescription });
-
-    if (!activity) {
-      return NextResponse.json({ message: "Activity not found" }, { status: 404 });
-    }
-
-    // If rankID is not provided, find rank by rankDescription
-    let rankObjectID;
-    if (rankID) {
-      const rank = await Points.findOne({ rankID });
-      if (!rank) {
-        return NextResponse.json({ message: "Rank not found" }, { status: 404 });
-      }
-      rankObjectID = rank._id;
-    } else {
-      const rank = await Points.findOne({ description: rankDescription });
-      if (!rank) {
-        return NextResponse.json({ message: "Rank not found" }, { status: 404 });
-      }
-      rankObjectID = rank._id;
-    }
-
-    // If eventTypeID is not provided, find event type by description
-    let eventTypeObjectID;
-    if (eventTypeID) {
-      const eventType = await EventType.findOne({ eventTypeID });
-      if (!eventType) {
-        return NextResponse.json({ message: "Event type not found" }, { status: 404 });
-      }
-      eventTypeObjectID = eventType._id;
-    } else {
-      const eventType = await EventType.findOne({ description: eventTypeDescription });
-      if (!eventType) {
-        return NextResponse.json({ message: "Event type not found" }, { status: 404 });
-      }
-      eventTypeObjectID = eventType._id;
-    }
-
-    // Extract participant's ObjectId and activity's ObjectId
-    const participantsID = participant._id;
-    const activityID = activity._id;
-
-    // Create and save the new event
-    const newEvent = new Event({ eventID, participantsID, activityID, rankID: rankObjectID, eventTypeID: eventTypeObjectID });
+    // Save the document in the database
     const savedEvent = await newEvent.save();
 
-    return NextResponse.json({ message: "Event added", data: savedEvent }, { status: 201 });
-  } catch (error) {
-    console.error("Error adding event:", error);
-    return NextResponse.json({ message: "Error adding event", error }, { status: 500 });
+    return new Response(JSON.stringify(savedEvent), {
+      status: 201,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (error: any) {
+    console.error('Error saving event:', error.message || error);
+    return new Response(JSON.stringify({ error: `Error saving event: ${error.message || error}` }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
   }
 }
 
-export async function DELETE(request: Request) {
-  await connectDB(); // Connect to your database
+export async function GET(req: Request) {
+  try {
+    await dbConnect();
 
-  if (req.method === 'DELETE') {
-    const { _id } = req.body; // Extract _id from the request body
+    // Fetch all event documents
+    const events = await Event.find({});
 
-    try {
-      const deletedEvent = await Event.findByIdAndDelete(_id); // Use findByIdAndDelete with _id
-      if (!deletedEvent) {
-        return res.status(404).json({ message: "Event not found" });
-      }
-      return res.status(200).json({ message: "Event deleted successfully" });
-    } catch (error) {
-      return res.status(500).json({ message: "Error deleting event", error: error.message });
+    // Return the events in JSON format
+    return new Response(JSON.stringify(events), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    return new Response(JSON.stringify({ error: 'Error fetching events' }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    await dbConnect();
+
+    const body = await req.json();
+    
+    // Find the event by eventID and update it with the provided data
+    const updatedEvent = await Event.findOneAndUpdate(
+      { eventID: body.eventID }, // filter to find the event
+      {
+        participantsID: body.participantsID,
+        activityID: body.activityID,
+        rankID: body.rankID,
+        eventTypeID: body.eventTypeID,
+        date: new Date(body.date),
+      },
+      { new: true } // option to return the updated document
+    );
+
+    // Check if the event was found and updated
+    if (!updatedEvent) {
+      return new Response(JSON.stringify({ error: 'Event not found' }), {
+        status: 404,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
     }
-  } else {
-    // Handle other methods (GET, POST, etc.)
-    res.setHeader('Allow', ['DELETE']);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
+
+    // Return the updated event in JSON format
+    return new Response(JSON.stringify(updatedEvent), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (error: any) {
+    console.error('Error updating event:', error.message || error);
+    return new Response(JSON.stringify({ error: `Error updating event: ${error.message || error}` }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    await dbConnect();
+
+    const body = await req.json();
+
+    // Check if eventID is provided in the request body
+    if (!body.eventID) {
+      return new Response(JSON.stringify({ error: 'eventID is required' }), {
+        status: 400,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    }
+
+    // Find and delete the event by eventID
+    const deletedEvent = await Event.findOneAndDelete({ eventID: body.eventID });
+
+    // Check if the event was found and deleted
+    if (!deletedEvent) {
+      return new Response(JSON.stringify({ error: 'Event not found' }), {
+        status: 404,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    }
+
+    // Return a success message
+    return new Response(JSON.stringify({ message: 'Event deleted successfully' }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (error: any) {
+    console.error('Error deleting event:', error.message || error);
+    return new Response(JSON.stringify({ error: `Error deleting event: ${error.message || error}` }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
   }
 }
