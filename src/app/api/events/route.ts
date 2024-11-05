@@ -111,7 +111,7 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  await dbConnect(); // Connect to your database
+  await connectDB(); // Connect to your database
 
   if (req.method === 'DELETE') {
     const { _id } = req.body; // Extract _id from the request body

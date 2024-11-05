@@ -24,7 +24,7 @@ export default function Home() {
             Leaderboard
           </Button>
         </Link>
-        <Link href="/acivities">
+        <Link href="/activities">
           <Button className="bg-white text-black font-bold text-lg border-white border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40">
             Activities
           </Button>
