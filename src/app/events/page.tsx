@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components
 import { Trash } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; 
 import Link from "next/link";
+import { SubmitHandler } from "react-hook-form"; // Add this line
 
 const formSchema = z.object({
   eventID: z.string().min(1, { message: "Event ID is required." }),
@@ -36,6 +37,7 @@ interface Event {
 
 export default function EventsPage() {
   const { toast } = useToast();
+  const [selectedEventID, setSelectedEventID] = useState<string | null>(null);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
   });
@@ -122,26 +124,54 @@ export default function EventsPage() {
     }
   };
   
+  const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = async (data) => {
+    const url = "/api/events";
+    const payload = selectedEventID ? { ...data, eventID: selectedEventID } : data;
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
-    console.log(data);  // Log the data to check if it's being sent correctly
     try {
-      const response = await fetch("/api/events", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error("Failed to add event");
-  
-      await fetchEvents();
-      toast({ title: "Event Added", description: "Event has been successfully added.", duration: 5000 });
-      form.reset();
-      setSelectedEvent(null);
-    } catch (error) {
-      toast({ title: "Error adding event", description: error.message, duration: 5000, variant: "destructive" });
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "An unexpected error occurred");
+        }
+
+        const message = selectedEventID ? "Event updated" : "Event added";
+        toast({
+            title: "Success!",
+            description: `${message} successfully.`,
+            duration: 2000,
+            variant: "default",
+        });
+
+        // Reset form, clear selection, and refresh event list
+        setSelectedEventID(null); // Reset selected event
+        form.reset({
+            eventID: "",
+            participantsID: "",
+            activityID: "",
+            rankID: "",
+            eventTypeID: "",
+        });
+
+        fetchEvents(); // Ensure fetchEvents is defined in the component
+    } catch (error: any) {
+        console.error("Failed to submit form:", error);
+        toast({
+            title: "Error",
+            description: error.message || "An unexpected error occurred",
+            duration: 3000,
+            variant: "destructive",
+        });
     }
-  };
-  
+};
+
     const handleDelete = async (eventID: String) => {
     try {
       const response = await fetch("/api/events", {
@@ -163,7 +193,7 @@ export default function EventsPage() {
         duration: 2000,
         variant: "default",
       });
-      fetchEvents(); // Refresh participants after deletion
+      fetchParticipants(); // Refresh participants after deletion
     } catch (error) {
       toast({
         title: "Error deleting participant",
