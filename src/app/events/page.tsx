@@ -44,7 +44,6 @@ export default function EventsPage() {
   const [participants, setParticipants] = useState([]);
   const [activities, setActivities] = useState([]);
   const [ranks, setRanks] = useState([]);
-  const [eventTypes, setEventTypes] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null); 
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -98,23 +97,11 @@ export default function EventsPage() {
     }
   };
 
-  const fetchEventTypes = async () => {
-    try { 
-      const response = await fetch("/api/eventType");
-      if (!response.ok) throw new Error("Failed to fetch event types");
-
-      const data = await response.json();
-      setEventTypes(data.data);
-    } catch (error) {
-      toast({
-        title: "Error fetching event types",
-        description: error.message,
-        duration: 2000,
-        variant: "destructive",
-      });
-    }
-  };
-
+  // Define your static event types
+  const eventTypes = [
+    { eventTypeID: "1", description: "Individual" },
+    { eventTypeID: "2", description: "Team" },
+  ];
 
   const fetchEvents = async () => {
     try {
@@ -137,6 +124,7 @@ export default function EventsPage() {
   
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    console.log(data);  // Log the data to check if it's being sent correctly
     try {
       const response = await fetch("/api/events", {
         method: "POST",
@@ -144,42 +132,66 @@ export default function EventsPage() {
         body: JSON.stringify(data),
       });
       if (!response.ok) throw new Error("Failed to add event");
-
-      await fetchEvents(); 
+  
+      await fetchEvents();
       toast({ title: "Event Added", description: "Event has been successfully added.", duration: 5000 });
       form.reset();
-      setSelectedEvent(null); 
+      setSelectedEvent(null);
     } catch (error) {
       toast({ title: "Error adding event", description: error.message, duration: 5000, variant: "destructive" });
     }
   };
-
-  const handleDelete = async (eventID: string) => {
+  
+    const handleDelete = async (eventID: String) => {
     try {
-      const response = await fetch(`/api/events/${eventID}`, {
+      const response = await fetch("/api/events", {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ eventID }), // Sending all required fields
       });
-      if (!response.ok) throw new Error("Failed to delete event");
-
-      setEvents((prevEvents) => prevEvents.filter((event) => event.eventID !== eventID));
-      toast({ title: "Event Deleted", description: "The event has been successfully deleted.", duration: 5000 });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete participant");
+      }
+  
+      toast({
+        title: "Participant deleted",
+        description: "The participant has been successfully deleted.",
+        duration: 2000,
+        variant: "default",
+      });
+      fetchEvents(); // Refresh participants after deletion
     } catch (error) {
-      toast({ title: "Error deleting event", description: error.message, duration: 5000, variant: "destructive" });
+      toast({
+        title: "Error deleting participant",
+        description: (error as Error).message,
+        duration: 5000,
+        variant: "destructive",
+      });
     }
   };
 
   const [isPopoverOpen, setIsPopoverOpen] = useState<{ [key: string]: boolean }>({});
+  const [selectedEventTypeID, setSelectedEventTypeID] = useState<string | null>(null);
 
-  // Define combobox keys more strictly using union type
   const handleSelect = (value: string, comboboxId: "participantsID" | "activityID" | "rankID" | "eventTypeID") => {
     form.setValue(comboboxId, value);
     setIsPopoverOpen((prev) => ({ ...prev, [comboboxId]: false })); // Close the corresponding popover
   };
+  
+  const handleSelectEventType = (value: string) => {
+    setSelectedEventTypeID(value);
+    setIsPopoverOpen((prev) => ({ ...prev, eventTypeID: false })); // Close the event type popover
+  };
+
 
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
-      await Promise.all([fetchParticipants(), fetchActivities(), fetchPoints(), fetchEventTypes()]);
+      await Promise.all([fetchParticipants(), fetchActivities(), fetchPoints()]);
       await fetchEvents();
       setLoading(false);
     };
@@ -285,23 +297,29 @@ export default function EventsPage() {
               )}
             />
 
-            {/* Event Type Popover */}
+            {/* // Event Type Popover */}
             <FormField
               name="eventTypeID"
-              control={form.control}
-              render={({ field }) => (
+              render={() => (
                 <FormItem>
-                  <Popover open={isPopoverOpen["eventTypeID"]} onOpenChange={(open) => setIsPopoverOpen(prev => ({ ...prev, eventTypeID: open }))}>
+                  <Popover
+                    open={isPopoverOpen["eventTypeID"]}
+                    onOpenChange={(open) => setIsPopoverOpen(prev => ({ ...prev, eventTypeID: open }))}
+                  >
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-72 h-12 rounded-xl text-black">
-                        {eventTypes.find(e => e.eventTypeID === field.value)?.eventType || "Select Event Type"}
+                        {eventTypes.find((e) => e.eventTypeID === selectedEventTypeID)?.description || "Select Event Type"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent>
                       <div className="space-y-1">
-                        {eventTypes.map((e) => (
-                          <div key={e.eventTypeID} onClick={() => handleSelect(e.eventTypeID, "eventTypeID")}>
-                            {e.eventType}
+                        {eventTypes.map((eventType) => (
+                          <div
+                            key={eventType.eventTypeID}
+                            onClick={() => handleSelectEventType(eventType.eventTypeID)}
+                            className="cursor-pointer p-2 rounded hover:bg-gray-200"
+                          >
+                            <div>{eventType.description}</div>
                           </div>
                         ))}
                       </div>
@@ -310,8 +328,10 @@ export default function EventsPage() {
                 </FormItem>
               )}
             />
-
-            <Button className="w-72 h-12 rounded-xl text-black" type="submit">
+            <Button
+              className="w-72 h-12 rounded-xl text-white font-bold"
+              type="submit"
+            >
               Add Event
             </Button>
           </form>

@@ -129,8 +129,6 @@ export default function ActivitiesPage() {
         },
       });
 
-      console.log(response);
-
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to delete activity");
