@@ -189,8 +189,24 @@ export async function DELETE(req: Request) {
       });
     }
 
-    // Find and delete the event by eventID
-    const deletedEvent = await Event.findOneAndDelete({ eventID: body.eventID });
+    // Parse eventID to number
+    const eventID = Number(body.eventID);
+
+    // Validate that eventID is a valid number
+    if (isNaN(eventID)) {
+      return new Response(
+        JSON.stringify({ error: 'eventID must be a valid number' }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
+    // Find and delete the event by eventID (number type)
+    const deletedEvent = await Event.findOneAndDelete({ eventID });
 
     // Check if the event was found and deleted
     if (!deletedEvent) {
@@ -211,11 +227,14 @@ export async function DELETE(req: Request) {
     });
   } catch (error: any) {
     console.error('Error deleting event:', error.message || error);
-    return new Response(JSON.stringify({ error: `Error deleting event: ${error.message || error}` }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    return new Response(
+      JSON.stringify({ error: `Error deleting event: ${error.message || error}` }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
   }
 }

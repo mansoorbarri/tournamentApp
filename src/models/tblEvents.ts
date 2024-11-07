@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 interface IEvent extends Document {
-  eventID: string;
+  eventID: number;
   participantsID: string;
   activityID: string;
   rankID: string;
@@ -9,7 +9,7 @@ interface IEvent extends Document {
 }
 
 const EventSchema: Schema = new Schema({
-  eventID: { type: String, required: true, unique: true },
+  eventID: { type: Number, required: true, unique: true },
   participantsID: { type: Schema.Types.ObjectId, ref: 'Participant', required: true },
   activityID: { type: Schema.Types.ObjectId, ref: 'Activity', required: true },
   rankID: { type: Schema.Types.ObjectId, ref: 'Point', required: true },
