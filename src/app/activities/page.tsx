@@ -212,8 +212,13 @@ export default function ActivitiesPage() {
       ) : (
         <div className="px-[150px]">
           <Table>
-            <TableHead>
-            </TableHead>
+          <TableHeader>
+              <TableRow>
+                <TableCell className="font-medium">Activity ID</TableCell>
+                <TableCell className="font-medium">Description</TableCell>
+                <TableCell className="font-medium">Actions</TableCell>
+              </TableRow>
+            </TableHeader>
             <TableBody>
               {activities.map((activity) => (
                 <TableRow
@@ -223,7 +228,7 @@ export default function ActivitiesPage() {
                 >
                   <TableCell className="font-medium">{activity.activityID}</TableCell>
                   <TableCell className="font-medium">{activity.description}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell>
                     <Button
                       variant="ghost"
                       className="text-red-600"
