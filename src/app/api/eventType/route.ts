@@ -27,7 +27,7 @@ export async function GET(request: Request) {
 
   try {
     // Fetch all event types from the database
-    const eventTypes = await EventType.find({});
+    const eventTypes = await EventType.find({}).sort({ description: 1 });
 
     return NextResponse.json({ message: 'Event types fetched successfully', data: eventTypes }, { status: 200 });
   } catch (error) {

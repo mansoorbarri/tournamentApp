@@ -10,11 +10,11 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import { Trash } from "lucide-react";
-import { Combobox } from "@/components/ui/combobox"; // Assuming combobox component exists in the ui directory
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; 
+import Link from "next/link";
 
 const formSchema = z.object({
   eventID: z.string().min(1, { message: "Event ID is required." }),
-  description: z.string().min(2, { message: "Description must be at least 2 characters long." }).max(100),
   participantsID: z.string().nonempty("Please select a participant"),
   activityID: z.string().nonempty("Please select an activity"),
   rankID: z.string().nonempty("Please select a rank"),
@@ -45,27 +45,85 @@ export default function EventsPage() {
   const [activities, setActivities] = useState([]);
   const [ranks, setRanks] = useState([]);
   const [eventTypes, setEventTypes] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null); 
   const [loading, setLoading] = useState<boolean>(true);
+
+  const fetchParticipants = async () => {
+    try {
+      const response = await fetch("/api/participants");
+      if (!response.ok) throw new Error("Failed to fetch participants");
+
+      const data = await response.json();
+      setParticipants(data.data); 
+    } catch (error) {
+      toast({
+        title: "Error fetching participants",
+        description: error.message,
+        duration: 2000,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchActivities = async () => {
+    try {
+      const response = await fetch("/api/activities");
+      if (!response.ok) throw new Error("Failed to fetch activities");
+
+      const data = await response.json();
+      setActivities(data.data); // Update activities state
+    } catch (error) {
+      toast({
+        title: "Error fetching activities",
+        description: error.message,
+        duration: 2000,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchPoints = async () => {
+    try {
+      const response = await fetch("/api/points");
+      if (!response.ok) throw new Error("Failed to fetch ranks");
+      const data = await response.json();
+      setRanks(data.data);
+    } catch (error){
+      toast({
+        title: "Error fetching points",
+        description: error.message,
+        duration: 2000,
+        variant: "destructive",
+      })
+    }
+  };
+
+  const fetchEventTypes = async () => {
+    try { 
+      const response = await fetch("/api/eventType");
+      if (!response.ok) throw new Error("Failed to fetch event types");
+
+      const data = await response.json();
+      setEventTypes(data.data);
+    } catch (error) {
+      toast({
+        title: "Error fetching event types",
+        description: error.message,
+        duration: 2000,
+        variant: "destructive",
+      });
+    }
+  };
+
 
   const fetchEvents = async () => {
     try {
       const response = await fetch("/api/events");
       if (!response.ok) throw new Error("Failed to fetch events");
-
+  
       const data = await response.json();
-
-      // Sort events by eventID
-      const sortedEvents = data.sort((a: Event, b: Event) =>
-        a.eventID.toString().localeCompare(b.eventID.toString())
-      );
-      setEvents(sortedEvents);
-
-      // Populate dropdown values
-      setParticipants(data.map((event: Event) => event.participant_lookup[0]));
-      setActivities(data.map((event: Event) => event.activityDetails[0]));
-      setRanks(data.map((event: Event) => event.rankDetails[0]));
-      setEventTypes(data.map((event: Event) => event.eventTypeDetails[0]));
-    } catch (error: any) {
+      setEvents(data.sort((a: Event, b: Event) => a.eventID.toString().localeCompare(b.eventID.toString())));
+    } catch (error) {
       toast({
         title: "Error fetching events",
         description: error.message,
@@ -76,143 +134,211 @@ export default function EventsPage() {
       setLoading(false);
     }
   };
+  
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
     try {
       const response = await fetch("/api/events", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
       if (!response.ok) throw new Error("Failed to add event");
 
-      await fetchEvents(); // Refresh event list
-      toast({
-        title: "Event Added",
-        description: "Event has been successfully added.",
-        duration: 5000,
-      });
+      await fetchEvents(); 
+      toast({ title: "Event Added", description: "Event has been successfully added.", duration: 5000 });
       form.reset();
+      setSelectedEvent(null); 
     } catch (error) {
-      toast({
-        title: "Error adding event",
-        description: error.message,
-        duration: 5000,
-        variant: "destructive",
-      });
+      toast({ title: "Error adding event", description: error.message, duration: 5000, variant: "destructive" });
     }
   };
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+  const handleDelete = async (eventID: string) => {
+    try {
+      const response = await fetch(`/api/events/${eventID}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete event");
 
+      setEvents((prevEvents) => prevEvents.filter((event) => event.eventID !== eventID));
+      toast({ title: "Event Deleted", description: "The event has been successfully deleted.", duration: 5000 });
+    } catch (error) {
+      toast({ title: "Error deleting event", description: error.message, duration: 5000, variant: "destructive" });
+    }
+  };
+
+  const [isPopoverOpen, setIsPopoverOpen] = useState<{ [key: string]: boolean }>({});
+
+  // Define combobox keys more strictly using union type
+  const handleSelect = (value: string, comboboxId: "participantsID" | "activityID" | "rankID" | "eventTypeID") => {
+    form.setValue(comboboxId, value);
+    setIsPopoverOpen((prev) => ({ ...prev, [comboboxId]: false })); // Close the corresponding popover
+  };
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      setLoading(true);
+      await Promise.all([fetchParticipants(), fetchActivities(), fetchPoints(), fetchEventTypes()]);
+      await fetchEvents();
+      setLoading(false);
+    };
+  
+    fetchAllData();
+  }, []);
+  
   return (
     <main className="bg-black text-white p-10">
-      {/* Form Section */}
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            name="eventID"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem label="Event ID">
-                <FormControl>
-                  <Input {...field} placeholder="Enter Event ID" />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="description"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem label="Description">
-                <FormControl>
-                  <Input {...field} placeholder="Event description" />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="participantsID"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem label="Participant">
-                <FormControl>
-                  <Combobox {...field} options={participants.map((p) => ({ value: p.participantsID, label: `${p.forename} ${p.surname}` }))} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="activityID"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem label="Activity">
-                <FormControl>
-                  <Combobox {...field} options={activities.map((a) => ({ value: a.activityID, label: a.description }))} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="rankID"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem label="Rank">
-                <FormControl>
-                  <Combobox {...field} options={ranks.map((r) => ({ value: r.rankID, label: `${r.pointsAwarded} Points` }))} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <FormField
-            name="eventTypeID"
-            control={form.control}
-            render={({ field }) => (
-              <FormItem label="Event Type">
-                <FormControl>
-                  <Combobox {...field} options={eventTypes.map((e) => ({ value: e.eventTypeID, label: e.description }))} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <Button type="submit" className="w-full">
-            Add Event
-          </Button>
-        </form>
-      </Form>
+      <div className="my-16 flex flex-col items-center justify-center space-y-6">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              name="eventID"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input {...field} 
+                    placeholder="Enter Event ID" 
+                    className="w-72 h-12 rounded-xl text-black"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
 
-      {/* Events Table */}
-      <div className="mt-10">
+            {/* Participant Popover */}
+            <FormField
+              name="participantsID"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <Popover open={isPopoverOpen["participantsID"]} onOpenChange={(open) => setIsPopoverOpen(prev => ({ ...prev, participantsID: open }))}>
+                    <PopoverTrigger asChild>
+                      <Button className="w-72 h-12 rounded-xl text-black" variant="outline">
+                        {participants.find(p => p.participantsID === field.value)?.forename || "Select Participant"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent>
+                      <div className="space-y-1">
+                        {participants.map((p) => (
+                          <div key={p.participantsID} onClick={() => handleSelect(p.participantsID, "participantsID")}>
+                            {p.forename} {p.surname}
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </FormItem>
+              )}
+            />
+
+            {/* Activity Popover */}
+            <FormField
+              name="activityID"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <Popover open={isPopoverOpen["activityID"]} onOpenChange={(open) => setIsPopoverOpen(prev => ({ ...prev, activityID: open }))}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-72 h-12 rounded-xl text-black">
+                        {activities.find(a => a.activityID === field.value)?.description || "Select Activity"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent>
+                      <div className="space-y-1">
+                        {activities.map((a) => (
+                          <div key={a.activityID} onClick={() => handleSelect(a.activityID, "activityID")}>
+                            {a.description}
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </FormItem>
+              )}
+            />
+
+            {/* Rank Popover */}
+            <FormField
+              name="rankID"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <Popover open={isPopoverOpen["rankID"]} onOpenChange={(open) => setIsPopoverOpen(prev => ({ ...prev, rankID: open }))}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-72 h-12 rounded-xl text-black">
+                        {ranks.find(r => r.rankID === field.value)?.rankID || "Select Rank"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent>
+                      <div className="space-y-1">
+                        {ranks.map((r) => (
+                          <div key={r.rankID} onClick={() => handleSelect(r.rankID, "rankID")}>
+                            {r.rankID}
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </FormItem>
+              )}
+            />
+
+            {/* Event Type Popover */}
+            <FormField
+              name="eventTypeID"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <Popover open={isPopoverOpen["eventTypeID"]} onOpenChange={(open) => setIsPopoverOpen(prev => ({ ...prev, eventTypeID: open }))}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-72 h-12 rounded-xl text-black">
+                        {eventTypes.find(e => e.eventTypeID === field.value)?.eventType || "Select Event Type"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent>
+                      <div className="space-y-1">
+                        {eventTypes.map((e) => (
+                          <div key={e.eventTypeID} onClick={() => handleSelect(e.eventTypeID, "eventTypeID")}>
+                            {e.eventType}
+                          </div>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </FormItem>
+              )}
+            />
+
+            <Button className="w-72 h-12 rounded-xl text-black" type="submit">
+              Add Event
+            </Button>
+          </form>
+        </Form>
+
         <Table>
           <TableHeader>
             <TableRow>
               <TableCell>Event ID</TableCell>
-              <TableCell>Participants</TableCell>
               <TableCell>Activity</TableCell>
               <TableCell>Rank</TableCell>
-              <TableCell>Event Type</TableCell>
-              <TableCell>Date</TableCell>
-              <TableCell>Actions</TableCell>
+              <TableCell>Participant</TableCell>
+              <TableCell>Action</TableCell>
             </TableRow>
           </TableHeader>
           <TableBody>
             {events.map((event) => (
               <TableRow key={event.eventID}>
                 <TableCell>{event.eventID}</TableCell>
-                <TableCell>{`${event.participant_lookup[0]?.forename} ${event.participant_lookup[0]?.surname}`}</TableCell>
                 <TableCell>{event.activityDetails[0]?.description}</TableCell>
                 <TableCell>{event.rankDetails[0]?.pointsAwarded}</TableCell>
-                <TableCell>{event.eventTypeDetails[0]?.description}</TableCell>
-                <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
+                <TableCell>{event.participant_lookup[0]?.forename}</TableCell>
                 <TableCell>
-                  <Button variant="destructive" onClick={() => handleDelete(event.eventID)}>
-                    <Trash className="w-4 h-4" />
-                  </Button>
+                  <Trash
+                    className="cursor-pointer text-red-600"
+                    onClick={() => handleDelete(event.eventID)}
+                  />
                 </TableCell>
               </TableRow>
             ))}

@@ -33,7 +33,7 @@ export async function GET(request: Request) {
 
   try {
     // Fetch all points from the database
-    const points = await Point.find({});
+    const points = await Point.find({}).sort({ pointsAwarded: -1 }); 
 
     // Log the fetched points for debugging
     console.log('Fetched points:', points);

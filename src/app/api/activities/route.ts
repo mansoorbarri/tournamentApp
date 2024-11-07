@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
     // Fetch activities from the database based on query parameters
     const activities = await Activity.find({
       ...(description && { description: { $regex: description, $options: 'i' } }), // Case-insensitive search
-    });
+    }).sort({ description: 1 });
 
     return NextResponse.json({
       message: 'Activities fetched successfully',
