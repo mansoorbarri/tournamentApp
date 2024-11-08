@@ -371,6 +371,7 @@ export default function EventsPage() {
           <TableHeader>
             <TableRow>
               <TableCell>Event ID</TableCell>
+              <TableCell>Participant</TableCell>
               <TableCell>Activity</TableCell>
               <TableCell>Rank</TableCell>
               <TableCell>Event Type</TableCell>
@@ -392,6 +393,7 @@ export default function EventsPage() {
               {events.map((event) => (
                 <TableRow key={event.eventID}>
                   <TableCell>{event.eventID}</TableCell>
+                  <TableCell>{event.participant_lookup[0]?.forename} {event.participant_lookup[0]?.surname}</TableCell>
                   <TableCell>{event.activityDetails[0]?.description}</TableCell>
                   <TableCell>{event.rankDetails[0]?.pointsAwarded}</TableCell>
                   <TableCell>{event.eventTypeDetails[0]?.description}</TableCell>
