@@ -373,27 +373,44 @@ export default function EventsPage() {
               <TableCell>Event ID</TableCell>
               <TableCell>Activity</TableCell>
               <TableCell>Rank</TableCell>
-              <TableCell>Participant</TableCell>
-              <TableCell>Action</TableCell>
+              <TableCell>Event Type</TableCell>
+              <TableCell>Date</TableCell>
+              <TableCell>Actions</TableCell>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {events.map((event) => (
-              <TableRow key={event.eventID}>
-                <TableCell>{event.eventID}</TableCell>
-                <TableCell>{event.activityDetails[0]?.description}</TableCell>
-                <TableCell>{event.rankDetails[0]?.pointsAwarded}</TableCell>
-                <TableCell>{event.participant_lookup[0]?.forename}</TableCell>
-                <TableCell>
-                  <Trash
-                    className="cursor-pointer text-red-600"
-                    onClick={() => handleDelete(event.eventID)}
-                  />
+
+          {loading ? (
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-4">
+                  Loading events...
                 </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
+            </TableBody>
+          ) : (
+            <TableBody>
+              {events.map((event) => (
+                <TableRow key={event.eventID}>
+                  <TableCell>{event.eventID}</TableCell>
+                  <TableCell>{event.activityDetails[0]?.description}</TableCell>
+                  <TableCell>{event.rankDetails[0]?.pointsAwarded}</TableCell>
+                  <TableCell>{event.eventTypeDetails[0]?.description}</TableCell>
+                  <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      className="text-red-500"
+                      onClick={() => handleDelete(event.eventID)}
+                    >
+                      <Trash className="w-4 h-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          )}
         </Table>
+
       </div>
     </main>
   );
