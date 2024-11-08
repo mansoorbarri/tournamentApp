@@ -35,9 +35,6 @@ export async function GET(request: Request) {
     // Fetch all points from the database
     const points = await Point.find({}).sort({ pointsAwarded: -1 }); 
 
-    // Log the fetched points for debugging
-    console.log('Fetched points:', points);
-
     return NextResponse.json({ message: 'Points fetched successfully', data: points }, { status: 200 });
   } catch (error) {
     console.error('Error fetching points:', error);
