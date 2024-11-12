@@ -8,10 +8,11 @@ export async function POST(request: Request) {
   await connectDB();
 
   try {
-    const { participantsID, id, forename, surname, teamName, participantsType } = await request.json();
+    // Parse the request body
+    const { id, participantsID, forename, surname, teamName, participantsType } = await request.json();
 
-    // Validate required fields
-    if (!participantsID || !forename || !surname || !teamName || !participantsType) {
+    // Validate fields
+    if (!forename || !surname || !teamName || !participantsType) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
@@ -32,15 +33,18 @@ export async function POST(request: Request) {
         { status: 200 }
       );
     } else {
-      // Generate a unique ID for the new participant
-      const lastParticipant = await Participant.findOne().sort({ id: -1 });
-      const newId = lastParticipant && typeof lastParticipant.id === 'number' 
-        ? lastParticipant.id + 1 
-        : 1;
+      // Check if a participant with the same forename and surname exists
+      const existingParticipant = await Participant.findOne({ forename, surname });
 
-      // Create a new participant with `id`
+      if (existingParticipant) {
+        return NextResponse.json(
+          { message: 'Participant with the same forename and surname already exists' },
+          { status: 409 } // Conflict status code
+        );
+      }
+
+      // Create a new participant
       const newParticipant = new Participant({
-        participantsid: newId,
         participantsID,
         forename,
         surname,
@@ -48,6 +52,7 @@ export async function POST(request: Request) {
         participantsType,
       });
 
+      // Save the participant to the database
       const savedParticipant = await newParticipant.save();
 
       return NextResponse.json(
@@ -81,7 +86,7 @@ export async function GET(request: NextRequest) {
       ...(forename && { forename }),
       ...(teamName && { teamName }),
       ...(participantsType && { participantsType }),
-    }).sort({ participantsID: 1 });
+    }).sort({ forename: 1 }); 
 
     return NextResponse.json({ message: 'Participants fetched successfully', data: participants });
   } catch (error) {
