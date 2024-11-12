@@ -31,7 +31,14 @@ const formSchema = z.object({
   surname: z.string().min(2, { message: "Surname must be at least 2 characters long." }).max(50),
   teamName: z.string().min(2, { message: "Team name must be at least 2 characters long." }).max(50),
   participantsType: z.string().min(1, { message: "Please select a participants type." }),
-});
+}); <TableHeader>
+<TableRow>
+  <TableCell className="font-medium">Forename</TableCell>
+  <TableCell className="font-medium">Surname</TableCell>
+  <TableCell className="font-medium">Team Name</TableCell>
+  <TableCell className="font-medium">Action</TableCell>
+</TableRow>
+</TableHeader>
 
 interface Participant {
   forename: string;
@@ -277,6 +284,15 @@ export default function ParticipantsPage() {
       ) : (
         <div className="px-[150px]">
           <Table>
+          <TableHeader>
+              <TableRow>
+                <TableCell className="font-medium">Forename</TableCell>
+                <TableCell className="font-medium">Surname</TableCell>
+                <TableCell className="font-medium">Team Name</TableCell>
+                <TableCell className="font-medium">Participant Type</TableCell>
+                <TableCell className="font-medium">Action</TableCell>
+              </TableRow>
+          </TableHeader>
           <TableBody>
             {participants.map((participant) => (
               <TableRow
@@ -287,8 +303,8 @@ export default function ParticipantsPage() {
                 <TableCell className="font-medium">{participant.forename}</TableCell>
                 <TableCell>{participant.surname}</TableCell>
                 <TableCell>{participant.teamName}</TableCell>
-                <TableCell className="text-right">{participant.participantsType}</TableCell>
-                <TableCell className="text-right">
+                <TableCell>{participant.participantsType}</TableCell>
+                <TableCell>
                   <Button
                     variant="ghost"
                     className="text-red-600"
