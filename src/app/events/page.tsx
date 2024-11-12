@@ -4,7 +4,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -12,11 +12,10 @@ import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components
 import { Trash } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"; 
 import Link from "next/link";
-import { SubmitHandler } from "react-hook-form"; // Add this line
 
 const formSchema = z.object({
   eventID: z.string().min(1, { message: "Event ID is required." }),
-  participantsID: z.string().nonempty("Please select a participant"),
+  participantsID: z.number().min(1, { message: "Participant ID is required." }),
   activityID: z.string().nonempty("Please select an activity"),
   rankID: z.string().nonempty("Please select a rank"),
   eventTypeID: z.string().nonempty("Please select an event type"),
@@ -24,7 +23,7 @@ const formSchema = z.object({
 
 interface Event {
   eventID: string;
-  participantsID: string;
+  participantsID: number;
   activityID: string;
   rankID: string;
   eventTypeID: string;
@@ -123,54 +122,55 @@ export default function EventsPage() {
       setLoading(false);
     }
   };
-  
-  const onSubmit: SubmitHandler<z.infer<typeof formSchema>> = async (data) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const url = "/api/events";
-    const payload = selectedEventID ? { ...data, eventID: selectedEventID } : data;
-
+    const payload = selectedEvent
+    ? { ...values, id: selectedEventID }
+    : values;
     try {
-        const response = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-        });
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "An unexpected error occurred");
-        }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "An unexpected error occurred");
+      }
 
-        const message = selectedEventID ? "Event updated" : "Event added";
-        toast({
-            title: "Success!",
-            description: `${message} successfully.`,
-            duration: 2000,
-            variant: "default",
-        });
+      const message = selectedEventID ? "Event updated" : "Event added";
+      toast({
+        title: "Success!",
+        description: `${message} successfully.`,
+        duration: 2000,
+        variant: "default",
+      });
 
-        // Reset form, clear selection, and refresh event list
-        setSelectedEventID(null); // Reset selected event
-        form.reset({
-            eventID: "",
-            participantsID: "",
-            activityID: "",
-            rankID: "",
-            eventTypeID: "",
-        });
+      // Reset form, clear selection, and refresh event list
+      setSelectedEventID(null);
+      form.reset({
+        eventID: "",
+        participantsID: 0,
+        activityID: "",
+        rankID: "",
+        eventTypeID: "",
+      });
 
-        fetchEvents(); // Ensure fetchEvents is defined in the component
+      fetchEvents();
     } catch (error: any) {
-        console.error("Failed to submit form:", error);
-        toast({
-            title: "Error",
-            description: error.message || "An unexpected error occurred",
-            duration: 3000,
-            variant: "destructive",
-        });
+      console.error("Failed to submit form:", error);
+      toast({
+        title: "Error",
+        description: error.message || "An unexpected error occurred",
+        duration: 3000,
+        variant: "destructive",
+      });
     }
-};
+  };
+
 
     const handleDelete = async (eventID: String) => {
     try {
@@ -193,7 +193,7 @@ export default function EventsPage() {
         duration: 2000,
         variant: "default",
       });
-      fetchParticipants(); // Refresh participants after deletion
+      fetchEvents(); // Refresh participants after deletion
     } catch (error) {
       toast({
         title: "Error deleting participant",
@@ -245,6 +245,8 @@ export default function EventsPage() {
                     className="w-72 h-12 rounded-xl text-black"
                     />
                   </FormControl>
+                  <FormMessage>{form.formState.errors.eventID?.message}</FormMessage>
+
                 </FormItem>
               )}
             />
@@ -264,16 +266,25 @@ export default function EventsPage() {
                     <PopoverContent>
                       <div className="space-y-1">
                         {participants.map((p) => (
-                          <div key={p.participantsID} onClick={() => handleSelect(p.participantsID, "participantsID")}>
+                          <div
+                            key={p.participantsID}
+                            onClick={() => {
+                              handleSelect(p._id, "participantsID"); // Sets the participantsID value in the form
+                              field.onChange(p.participantsID); // Updates the form field with the selected participantsID
+                            }}
+                            className="cursor-pointer"
+                          >
                             {p.forename} {p.surname}
                           </div>
                         ))}
                       </div>
                     </PopoverContent>
                   </Popover>
+                  <FormMessage>{form.formState.errors.participantsID?.message}</FormMessage>
                 </FormItem>
               )}
             />
+
 
             {/* Activity Popover */}
             <FormField
@@ -297,6 +308,8 @@ export default function EventsPage() {
                       </div>
                     </PopoverContent>
                   </Popover>
+                  <FormMessage>{form.formState.errors.activityID?.message}</FormMessage>
+
                 </FormItem>
               )}
             />
@@ -323,6 +336,8 @@ export default function EventsPage() {
                       </div>
                     </PopoverContent>
                   </Popover>
+                  <FormMessage>{form.formState.errors.rankID?.message}</FormMessage>
+
                 </FormItem>
               )}
             />
@@ -330,7 +345,8 @@ export default function EventsPage() {
             {/* // Event Type Popover */}
             <FormField
               name="eventTypeID"
-              render={() => (
+              control={form.control}
+              render={({ field }) => (
                 <FormItem>
                   <Popover
                     open={isPopoverOpen["eventTypeID"]}
@@ -338,31 +354,32 @@ export default function EventsPage() {
                   >
                     <PopoverTrigger asChild>
                       <Button variant="outline" className="w-72 h-12 rounded-xl text-black">
-                        {eventTypes.find((e) => e.eventTypeID === selectedEventTypeID)?.description || "Select Event Type"}
+                        {eventTypes.find((e => e.eventTypeID === field.value))?.description || "Select Event Type"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent>
                       <div className="space-y-1">
-                        {eventTypes.map((eventType) => (
+                        {eventTypes.map((e) => (
                           <div
-                            key={eventType.eventTypeID}
-                            onClick={() => handleSelectEventType(eventType.eventTypeID)}
-                            className="cursor-pointer p-2 rounded hover:bg-gray-200"
+                            key={e.eventTypeID}
+                            onClick={() => handleSelect(e.eventTypeID, "eventTypeID")}
                           >
-                            <div>{eventType.description}</div>
+                          <div>{e.description}</div>
                           </div>
                         ))}
                       </div>
                     </PopoverContent>
                   </Popover>
+                  <FormMessage>{form.formState.errors.eventTypeID?.message}</FormMessage>
+
                 </FormItem>
               )}
             />
             <Button
-              className="w-72 h-12 rounded-xl text-white font-bold"
               type="submit"
+              className="w-72 h-12 rounded-xl text-white font-bold"
             >
-              Add Event
+                {selectedEventID ? "Update" : "Submit"}
             </Button>
           </form>
         </Form>

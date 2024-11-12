@@ -54,7 +54,7 @@ export async function GET(req: Request) {
             } 
           } },
           pipeline: [
-            { $match: { $expr: { $eq: ["$_id", "$$participantId"] } } }
+            { $match: { $expr: { $eq: ["$participantsID", "$$participantId"] } } }
           ],
           as: "participant_lookup"
         }
@@ -70,7 +70,7 @@ export async function GET(req: Request) {
             } 
           } },
           pipeline: [
-            { $match: { $expr: { $eq: ["$_id", "$$activityId"] } } }
+            { $match: { $expr: { $eq: ["$activityID", "$$activityId"] } } }
           ],
           as: "activityDetails"
         }
@@ -86,7 +86,7 @@ export async function GET(req: Request) {
             } 
           } },
           pipeline: [
-            { $match: { $expr: { $eq: ["$_id", "$$rankId"] } } }
+            { $match: { $expr: { $eq: ["$rankID", "$$rankId"] } } }
           ],
           as: "rankDetails"
         }
@@ -102,7 +102,7 @@ export async function GET(req: Request) {
             } 
           } },
           pipeline: [
-            { $match: { $expr: { $eq: ["$_id", "$$eventTypeId"] } } }
+            { $match: { $expr: { $eq: ["$eventTypeID", "$$eventTypeId"] } } }
           ],
           as: "eventTypeDetails"
         }
