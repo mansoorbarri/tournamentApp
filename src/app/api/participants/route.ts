@@ -8,11 +8,10 @@ export async function POST(request: Request) {
   await connectDB();
 
   try {
-    // Parse the request body
-    const { id, forename, surname, teamName, participantsType } = await request.json();
+    const { participantsID, id, forename, surname, teamName, participantsType } = await request.json();
 
-    // Validate fields
-    if (!forename || !surname || !teamName || !participantsType) {
+    // Validate required fields
+    if (!participantsID || !forename || !surname || !teamName || !participantsType) {
       return NextResponse.json({ message: 'Missing required fields' }, { status: 400 });
     }
 
@@ -33,25 +32,22 @@ export async function POST(request: Request) {
         { status: 200 }
       );
     } else {
-      // Check if a participant with the same forename and surname exists
-      const existingParticipant = await Participant.findOne({ forename, surname });
+      // Generate a unique ID for the new participant
+      const lastParticipant = await Participant.findOne().sort({ id: -1 });
+      const newId = lastParticipant && typeof lastParticipant.id === 'number' 
+        ? lastParticipant.id + 1 
+        : 1;
 
-      if (existingParticipant) {
-        return NextResponse.json(
-          { message: 'Participant with the same forename and surname already exists' },
-          { status: 409 } // Conflict status code
-        );
-      }
-
-      // Create a new participant
+      // Create a new participant with `id`
       const newParticipant = new Participant({
+        participantsid: newId,
+        participantsID,
         forename,
         surname,
         teamName,
         participantsType,
       });
 
-      // Save the participant to the database
       const savedParticipant = await newParticipant.save();
 
       return NextResponse.json(
@@ -67,7 +63,6 @@ export async function POST(request: Request) {
     );
   }
 }
-
 
 export async function GET(request: NextRequest) {
   await connectDB();
@@ -86,7 +81,7 @@ export async function GET(request: NextRequest) {
       ...(forename && { forename }),
       ...(teamName && { teamName }),
       ...(participantsType && { participantsType }),
-    }).sort({ forename: 1 }); 
+    }).sort({ participantsID: 1 });
 
     return NextResponse.json({ message: 'Participants fetched successfully', data: participants });
   } catch (error) {

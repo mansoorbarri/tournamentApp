@@ -264,7 +264,7 @@ export default function EventsPage() {
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent>
-                      <div className="space-y-1">
+                      <div className="space-y-1 max-h-60 overflow-y-auto">
                         {participants.map((p) => (
                           <div
                             key={p.participantsID}
@@ -284,7 +284,6 @@ export default function EventsPage() {
                 </FormItem>
               )}
             />
-
 
             {/* Activity Popover */}
             <FormField
@@ -375,12 +374,19 @@ export default function EventsPage() {
                 </FormItem>
               )}
             />
-            <Button
-              type="submit"
-              className="w-72 h-12 rounded-xl text-white font-bold"
-            >
-                {selectedEventID ? "Update" : "Submit"}
-            </Button>
+            <div className="mt-6 flex justify-center flex-col items-center space-y-2">
+              <Button
+                type="submit"
+                className="bg-white text-black font-bold text-lg border-white border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40"
+              >
+                Submit
+              </Button>
+              <Link href="/">
+                <Button className="bg-mid text-white font-bold text-lg border-mid border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40">
+                  Main Menu
+                </Button>
+              </Link>
+            </div>
           </form>
         </Form>
 
