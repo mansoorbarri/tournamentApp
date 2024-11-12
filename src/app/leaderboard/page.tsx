@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface LeaderboardEntry {
   participantID: string;
@@ -113,6 +115,13 @@ export default function LeaderboardPage() {
                 )}
               </TableBody>
             </Table>
+          </div>
+          <div className="mt-6 flex justify-center flex-col items-center space-y-2">
+          <Link href="/">
+            <Button className="bg-mid text-white font-bold text-lg border-mid border-2 transition-colors duration-400 hover:bg-black hover:text-white w-40">
+              Main Menu
+            </Button>
+          </Link>
           </div>
         </>
       )}
