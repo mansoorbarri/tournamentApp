@@ -9,6 +9,7 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormMessage,
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ import {
 import { Trash } from "lucide-react"; 
 
 const formSchema = z.object({
+  participantsID: z.string().min(1, { message: "Participants ID is required." }),
   forename: z.string().min(2, { message: "Forename must be at least 2 characters long." }).max(50),
   surname: z.string().min(2, { message: "Surname must be at least 2 characters long." }).max(50),
   teamName: z.string().min(2, { message: "Team name must be at least 2 characters long." }).max(50),
@@ -41,6 +43,7 @@ const formSchema = z.object({
 </TableHeader>
 
 interface Participant {
+  participantsID: string;
   forename: string;
   surname: string;
   teamName: string;
@@ -187,6 +190,23 @@ export default function ParticipantsPage() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="">
             <FormField
               control={form.control}
+              name="participantsID"
+              render={({ field }) => (
+                <FormItem className="mb-4">
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Participants ID"
+                      {...field}
+                      className="w-72 h-12 rounded-xl text-black"
+                    />
+                  </FormControl>
+                  <FormMessage>{form.formState.errors.participantsID?.message}</FormMessage>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="forename"
               render={({ field }) => (
                 <FormItem className="mb-4">
@@ -286,8 +306,8 @@ export default function ParticipantsPage() {
           <Table>
           <TableHeader>
               <TableRow>
-                <TableCell className="font-medium">Forename</TableCell>
-                <TableCell className="font-medium">Surname</TableCell>
+                <TableCell className="font-medium">ID</TableCell>
+                <TableCell className="font-medium">Name</TableCell>
                 <TableCell className="font-medium">Team Name</TableCell>
                 <TableCell className="font-medium">Participant Type</TableCell>
                 <TableCell className="font-medium">Action</TableCell>
@@ -300,8 +320,8 @@ export default function ParticipantsPage() {
                 onClick={() => handleRowClick(participant)}
                 className="cursor-pointer hover:bg-gray-700"
               >
-                <TableCell className="font-medium">{participant.forename}</TableCell>
-                <TableCell>{participant.surname}</TableCell>
+                <TableCell>{participant.participantsID}</TableCell>
+                <TableCell className="font-medium">{participant.forename} {participant.surname}</TableCell>
                 <TableCell>{participant.teamName}</TableCell>
                 <TableCell>{participant.participantsType}</TableCell>
                 <TableCell>

@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
       ...(forename && { forename }),
       ...(teamName && { teamName }),
       ...(participantsType && { participantsType }),
-    }).sort({ forename: 1 }); 
+    }).sort({ participantsID: 1 });
 
     return NextResponse.json({ message: 'Participants fetched successfully', data: participants });
   } catch (error) {
