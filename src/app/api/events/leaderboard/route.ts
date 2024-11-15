@@ -1,25 +1,27 @@
-// src/app/api/events/route.ts
 import dbConnect from '@/lib/dbConnect';
 import Event from '@/models/tblEvents';
+import Participant from '@/models/tblParticipants'; // Assuming the participant model exists
 
 export async function GET(req: Request) {
   try {
     await dbConnect();
-    
-    // Fetch all events
+
+    // Fetch all events with lookups for participants, activities, points, and event types
     const events = await Event.aggregate([
       {
         $lookup: {
           from: "participants",
-          let: { participantId: { 
-            $cond: { 
-              if: { $eq: [{ $type: "$participantsID" }, "string"] }, 
-              then: { $toObjectId: "$participantsID" }, 
-              else: "$participantsID" 
-            } 
-          } },
+          let: {
+            participantId: {
+              $cond: {
+                if: { $eq: [{ $type: "$participantsID" }, "string"] },
+                then: { $toObjectId: "$participantsID" },
+                else: "$participantsID"
+              }
+            }
+          },
           pipeline: [
-            { $match: { $expr: { $eq: ["$participantsID", "$$participantId"] } } }
+            { $match: { $expr: { $eq: ["$participantsID", "$$participantId"] } } },
           ],
           as: "participant_lookup"
         }
@@ -27,13 +29,15 @@ export async function GET(req: Request) {
       {
         $lookup: {
           from: "activities",
-          let: { activityId: { 
-            $cond: { 
-              if: { $eq: [{ $type: "$activityID" }, "string"] }, 
-              then: { $toObjectId: "$activityID" }, 
-              else: "$activityID" 
-            } 
-          } },
+          let: {
+            activityId: {
+              $cond: {
+                if: { $eq: [{ $type: "$activityID" }, "string"] },
+                then: { $toObjectId: "$activityID" },
+                else: "$activityID"
+              }
+            }
+          },
           pipeline: [
             { $match: { $expr: { $eq: ["$activityID", "$$activityId"] } } }
           ],
@@ -43,13 +47,15 @@ export async function GET(req: Request) {
       {
         $lookup: {
           from: "points",
-          let: { rankId: { 
-            $cond: { 
-              if: { $eq: [{ $type: "$rankID" }, "string"] }, 
-              then: { $toObjectId: "$rankID" }, 
-              else: "$rankID" 
-            } 
-          } },
+          let: {
+            rankId: {
+              $cond: {
+                if: { $eq: [{ $type: "$rankID" }, "string"] },
+                then: { $toObjectId: "$rankID" },
+                else: "$rankID"
+              }
+            }
+          },
           pipeline: [
             { $match: { $expr: { $eq: ["$rankID", "$$rankId"] } } }
           ],
@@ -59,13 +65,15 @@ export async function GET(req: Request) {
       {
         $lookup: {
           from: "eventtypes",
-          let: { eventTypeId: { 
-            $cond: { 
-              if: { $eq: [{ $type: "$eventTypeID" }, "string"] }, 
-              then: { $toObjectId: "$eventTypeID" }, 
-              else: "$eventTypeID" 
-            } 
-          } },
+          let: {
+            eventTypeId: {
+              $cond: {
+                if: { $eq: [{ $type: "$eventTypeID" }, "string"] },
+                then: { $toObjectId: "$eventTypeID" },
+                else: "$eventTypeID"
+              }
+            }
+          },
           pipeline: [
             { $match: { $expr: { $eq: ["$eventTypeID", "$$eventTypeId"] } } }
           ],
@@ -74,53 +82,68 @@ export async function GET(req: Request) {
       }
     ]);
 
-    // Separate events into individual and team leaderboards
-    const individualEvents = events.filter(event => event.eventTypeID === 1); // Individual events
-    const teamEvents = events.filter(event => event.eventTypeID === 2); // Team events
+    // Separate participants by type: "S" and "M"
+    const singleParticipants = events.filter(event =>
+      event.participant_lookup[0]?.participantsType === "S"
+    );
+    const multipleParticipants = events.filter(event =>
+      event.participant_lookup[0]?.participantsType === "M"
+    );
 
-    // Process the leaderboard data for individual events
-    const individualLeaderboard = individualEvents.map(event => {
-      const participant = event.participant_lookup[0];
-      const pointsAwarded = event.rankDetails[0]?.pointsAwarded || 0;
+    // Helper function to process leaderboard data
+    const processLeaderboard = (events) =>
+      events.map(event => {
+        const participant = event.participant_lookup[0];
+        const pointsAwarded = event.rankDetails[0]?.pointsAwarded || 0;
 
-      return {
-        participantID: participant.participantsID,
-        forename: participant.forename,
-        surname: participant.surname,
-        totalPoints: pointsAwarded
-      };
-    });
+        return {
+          participantID: participant?.participantsID || "N/A",
+          forename: participant?.forename || "Unknown",
+          surname: participant?.surname || "",
+          teamName: participant?.teamName || "",
+          totalPoints: pointsAwarded
+        };
+      });
 
-    // Process the leaderboard data for team events
-    const teamLeaderboard = teamEvents.map(event => {
-      const participant = event.participant_lookup[0];
-      const pointsAwarded = event.rankDetails[0]?.pointsAwarded || 0;
-
-      return {
-        participantID: participant.participantsID,
-        teamName: participant.teamName, // Assuming participants have a teamName
-        totalPoints: pointsAwarded
-      };
-    });
+    // Process leaderboards
+    const singleIndividualLeaderboard = processLeaderboard(
+      singleParticipants.filter(event => event.eventTypeID === 1)
+    );
+    const multipleIndividualLeaderboard = processLeaderboard(
+      multipleParticipants.filter(event => event.eventTypeID === 1)
+    );
+    const singleTeamLeaderboard = processLeaderboard(
+      singleParticipants.filter(event => event.eventTypeID === 2)
+    );
+    const multipleTeamLeaderboard = processLeaderboard(
+      multipleParticipants.filter(event => event.eventTypeID === 2)
+    );
 
     // Return the leaderboard data
-    return new Response(JSON.stringify({
-      individualLeaderboard: individualLeaderboard,
-      teamLeaderboard: teamLeaderboard
-    }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
+    return new Response(
+      JSON.stringify({
+        singleIndividualLeaderboard,
+        multipleIndividualLeaderboard,
+        singleTeamLeaderboard,
+        multipleTeamLeaderboard,
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
   } catch (error) {
-    console.error('Error fetching events:', error.message, error.stack);
-    return new Response(JSON.stringify({ error: 'Error fetching events', details: error.message }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    console.error("Error fetching events:", error.message, error.stack);
+    return new Response(
+      JSON.stringify({ error: "Error fetching events", details: error.message }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
   }
 }
