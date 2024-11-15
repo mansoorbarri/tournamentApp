@@ -6,14 +6,21 @@ interface IEvent extends Document {
   activityID: number;      // Changed to Number
   rankID: number;          // Changed to Number
   eventTypeID: number;     // Changed to Number
+  createdAt?: Date;        // Optional because it's auto-generated
+  updatedAt?: Date;        // Optional because it's auto-generated
 }
 
-const EventSchema: Schema = new Schema({
-  eventID: { type: Number, required: true, unique: true },
-  participantsID: { type: Number, required: true },  // Changed to Number
-  activityID: { type: Number, required: true },      // Changed to Number
-  rankID: { type: Number, required: true },          // Changed to Number
-  eventTypeID: { type: Number, required: true },     // Changed to Number
-});
+const EventSchema = new Schema(
+  {
+    eventID: { type: Number, required: true, unique: true },
+    participantsID: { type: Number, required: true },
+    activityID: { type: Number, required: true },
+    rankID: { type: Number, required: true },
+    eventTypeID: { type: Number, required: true },
+  },
+  {
+    timestamps: true, // Adds createdAt and updatedAt
+  }
+);
 
 export default mongoose.models.Event || mongoose.model<IEvent>('Event', EventSchema);

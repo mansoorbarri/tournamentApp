@@ -32,6 +32,7 @@ interface Event {
   activityDetails: [{ description: string }];
   rankDetails: [{ pointsAwarded: number }];
   eventTypeDetails: [{ description: string }];
+  createdAt: string;
 }
 
 export default function EventsPage() {
@@ -420,7 +421,7 @@ export default function EventsPage() {
                   <TableCell>{event.activityDetails[0]?.description}</TableCell>
                   <TableCell>{event.rankDetails[0]?.pointsAwarded}</TableCell>
                   <TableCell>{event.eventTypeDetails[0]?.description}</TableCell>
-                  <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(event.createdAt).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <Button
                       variant="ghost"
