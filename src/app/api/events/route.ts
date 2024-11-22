@@ -9,6 +9,20 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
+    // Validate event participation limits
+    const eventCount = await Event.countDocuments({ participantsID: body.participantsID });
+    if (eventCount >= 5) {
+      return new Response(
+        JSON.stringify({ error: 'Each participant or team can only participate in 5 events' }),
+        {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
     // Create a new Event document
     const newEvent = new Event({
       eventID: body.eventID,
@@ -131,6 +145,25 @@ export async function PUT(req: Request) {
     await dbConnect();
 
     const body = await req.json();
+
+      // Validate event participation limits
+      const eventCount = await Event.countDocuments({ participantsID: body.participantsID });
+      const isUpdatingExistingEvent = await Event.exists({
+        eventID: body.eventID,
+        participantsID: body.participantsID,
+      });
+  
+      if (!isUpdatingExistingEvent && eventCount >= 5) {
+        return new Response(
+          JSON.stringify({ error: 'Each participant or team can only participate in 5 events' }),
+          {
+            status: 400,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+      }
     
     // Find the event by eventID and update it with the provided data
     const updatedEvent = await Event.findOneAndUpdate(
