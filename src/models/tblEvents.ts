@@ -12,7 +12,7 @@ interface IEvent extends Document {
 
 const EventSchema = new Schema(
   {
-    eventID: { type: Number, required: true, unique: true },
+    eventID: { type: Number, required: true },
     participantsID: { type: Number, required: true },
     activityID: { type: Number, required: true },
     rankID: { type: Number, required: true },
