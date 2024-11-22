@@ -42,6 +42,15 @@ export async function POST(request: Request) {
           { status: 409 } // Conflict status code
         );
       }
+      if (teamName === 'Individual') {
+        const individualCount = await Participant.countDocuments({ teamName: 'Individual' });
+        if (individualCount >= 20) {
+          return NextResponse.json(
+            { message: 'Maximum limit of 20 participants in team "Individual" reached' },
+            { status: 400 }
+          );
+        }
+      }      
 
       // Create a new participant
       const newParticipant = new Participant({
@@ -100,6 +109,33 @@ export async function PUT(req: NextRequest) {
 
   const { forename, surname, teamName } = await req.json();
 
+  // Check team limits
+  if (teamName === 'Individual') {
+    const individualCount = await Participant.countDocuments({ teamName: 'Individual' });
+    const isAlreadyInIndividual = await Participant.exists({
+      forename,
+      surname,
+      teamName: 'Individual',
+    });
+
+    if (!isAlreadyInIndividual && individualCount >= 20) {
+      return NextResponse.json(
+        { message: 'Maximum limit of 20 participants in team "Individual" reached' },
+        { status: 400 }
+      );
+    }
+  } else {
+    const teamCount = await Participant.countDocuments({ teamName });
+    const isAlreadyInTeam = await Participant.exists({ forename, surname, teamName });
+
+    if (!isAlreadyInTeam && teamCount >= 5) {
+      return NextResponse.json(
+        { message: `Maximum limit of 5 participants in team "${teamName}" reached` },
+        { status: 400 }
+      );
+    }
+  }
+  
   try {
     // Update the participant based on their forename and surname
     const updatedParticipant = await Participant.findOneAndUpdate(
