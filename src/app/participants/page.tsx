@@ -257,7 +257,7 @@ export default function ParticipantsPage() {
                 <FormItem className="mb-4">
                   <FormControl>
                     <Select {...field} value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-72 h-12 rounded-xl bg-white text-mid">
+                      <SelectTrigger className="w-72 h-12 rounded-xl bg-white text-mid cursor-pointer">
                         <SelectValue placeholder="Participant type" />
                       </SelectTrigger>
                       <SelectContent className="bg-white">
@@ -271,7 +271,7 @@ export default function ParticipantsPage() {
                           />
                         </div>
                         {filteredParticipantsTypes.map((type) => (
-                          <SelectItem key={type} value={type}>
+                          <SelectItem key={type} value={type} className="cursor-pointer"> // Add cursor pointer class
                             {type}
                           </SelectItem>
                         ))}
