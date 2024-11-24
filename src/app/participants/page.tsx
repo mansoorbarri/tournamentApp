@@ -271,7 +271,7 @@ export default function ParticipantsPage() {
                           />
                         </div>
                         {filteredParticipantsTypes.map((type) => (
-                          <SelectItem key={type} value={type} className="cursor-pointer"> // Add cursor pointer class
+                          <SelectItem key={type} value={type} className="cursor-pointer">
                             {type}
                           </SelectItem>
                         ))}
