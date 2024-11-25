@@ -1,12 +1,12 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 interface IActivity extends Document {
-  activityID: string;
+  activityID: number;
   description: string;
 }
 
 const ActivitySchema: Schema = new Schema({
-  activityID: { type: String, required: true, unique: true },
+  activityID: { type: Number, required: true, unique: true },
   description: { type: String, required: true }
 });
 
