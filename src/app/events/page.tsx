@@ -16,7 +16,7 @@ import Link from "next/link";
 const formSchema = z.object({
   eventID: z.string().min(1, { message: "Event ID is required." }),
   participantsID: z.number().min(1, { message: "Participant ID is required." }),
-  activityID: z.string().nonempty("Please select an activity"),
+  activityID: z.number().min(1, { message: "Activity ID is required." }),
   rankID: z.string().nonempty("Please select a rank"),
   eventTypeID: z.string().nonempty("Please select an event type"),
 });
@@ -24,7 +24,7 @@ const formSchema = z.object({
 interface Event {
   eventID: string;
   participantsID: number;
-  activityID: string;
+  activityID: number;
   rankID: string;
   eventTypeID: string;
   date: string;
@@ -155,7 +155,7 @@ export default function EventsPage() {
       form.reset({
         eventID: "",
         participantsID: 0,
-        activityID: "",
+        activityID: 0,
         rankID: "",
         eventTypeID: "",
       });
