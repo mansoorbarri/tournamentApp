@@ -91,32 +91,45 @@ export async function GET(req: Request) {
     );
 
     // Helper function to process leaderboard data
-    const processLeaderboard = (events) =>
-      events.map(event => {
-        const participant = event.participant_lookup[0];
-        const pointsAwarded = event.rankDetails[0]?.pointsAwarded || 0;
+    const processLeaderboard = (events, includeTeamName, isTeam = false) =>
+      events
+        .filter(event => {
+          const teamName = event.participant_lookup[0]?.teamName || "";
+          return isTeam
+            ? teamName.startsWith("Team ") // Include teams only
+            : teamName === includeTeamName; // Include "Individual" only
+        })
+        .map(event => {
+          const participant = event.participant_lookup[0];
+          const pointsAwarded = event.rankDetails[0]?.pointsAwarded || 0;
 
-        return {
-          participantID: participant?.participantsID || "N/A",
-          forename: participant?.forename || "Unknown",
-          surname: participant?.surname || "",
-          teamName: participant?.teamName || "",
-          totalPoints: pointsAwarded
-        };
-      });
+          return {
+            participantID: participant?.participantsID || "N/A",
+            forename: participant?.forename || "Unknown",
+            surname: participant?.surname || "",
+            teamName: participant?.teamName || "",
+            totalPoints: pointsAwarded
+          };
+        });
 
     // Process leaderboards
     const singleIndividualLeaderboard = processLeaderboard(
-      singleParticipants.filter(event => event.eventTypeID === 1)
+      singleParticipants.filter(event => event.eventTypeID === 1),
+      "Individual"
     );
     const multipleIndividualLeaderboard = processLeaderboard(
-      multipleParticipants.filter(event => event.eventTypeID === 1)
+      multipleParticipants.filter(event => event.eventTypeID === 1),
+      "Individual"
     );
     const singleTeamLeaderboard = processLeaderboard(
-      singleParticipants.filter(event => event.eventTypeID === 2)
+      singleParticipants.filter(event => event.eventTypeID === 2),
+      null,
+      true // Include only teams
     );
     const multipleTeamLeaderboard = processLeaderboard(
-      multipleParticipants.filter(event => event.eventTypeID === 2)
+      multipleParticipants.filter(event => event.eventTypeID === 2),
+      null,
+      true // Include only teams
     );
 
     // Return the leaderboard data

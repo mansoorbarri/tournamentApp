@@ -56,12 +56,18 @@ export default function LeaderboardPage() {
     fetchLeaderboardData();
   }, []);
 
-  const renderTable = (data: LeaderboardEntry[], columns: string[]) => (
+  const renderTable = (
+    data: LeaderboardEntry[],
+    columns: string[],
+    isIndividual: boolean = false
+  ) => (
     <Table>
       <TableHeader>
         <TableRow>
-          {columns.map(col => (
-            <TableCell key={col} className="font-medium">{col}</TableCell>
+          {columns.map((col) => (
+            <TableCell key={col} className="font-medium">
+              {col}
+            </TableCell>
           ))}
         </TableRow>
       </TableHeader>
@@ -70,7 +76,11 @@ export default function LeaderboardPage() {
           data.map((entry, index) => (
             <TableRow key={entry.participantID} className="hover:bg-gray-700">
               <TableCell>{index + 1}</TableCell>
-              <TableCell>{entry.teamName || `${entry.forename} ${entry.surname}`}</TableCell>
+              <TableCell>
+                {isIndividual
+                  ? `${entry.forename || "Unknown"} ${entry.surname || ""}`
+                  : entry.teamName || "N/A"}
+              </TableCell>
               <TableCell>{entry.totalPoints}</TableCell>
             </TableRow>
           ))
@@ -84,14 +94,14 @@ export default function LeaderboardPage() {
       </TableBody>
     </Table>
   );
-
+  
   return (
     <main className="bg-black text-white p-10">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold mb-4">Leaderboard</h1>
         <h2 className="text-2xl font-semibold">Participants Ranked by Points</h2>
       </div>
-
+  
       {loading ? (
         <p className="text-center">Loading leaderboard...</p>
       ) : (
@@ -106,11 +116,11 @@ export default function LeaderboardPage() {
           </div>
           <div className="px-[150px] mb-10">
             <h3 className="text-2xl font-semibold mb-4">Single Individual Leaderboard</h3>
-            {renderTable(leaderboards.singleIndividual, ["Rank", "Participant", "Total Points"])}
+            {renderTable(leaderboards.singleIndividual, ["Rank", "Participant", "Total Points"], true)}
           </div>
           <div className="px-[150px] mb-10">
             <h3 className="text-2xl font-semibold mb-4">Multi Individual Leaderboard</h3>
-            {renderTable(leaderboards.multiIndividual, ["Rank", "Participant", "Total Points"])}
+            {renderTable(leaderboards.multiIndividual, ["Rank", "Participant", "Total Points"], true)}
           </div>
           <div className="mt-6 flex justify-center flex-col items-center space-y-2">
             <Link href="/">
@@ -123,4 +133,4 @@ export default function LeaderboardPage() {
       )}
     </main>
   );
-}
+}  
