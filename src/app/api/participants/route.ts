@@ -50,7 +50,16 @@ export async function POST(request: Request) {
             { status: 400 }
           );
         }
-      }      
+      } else {
+        const teamCount = await Participant.countDocuments({ teamName });
+        if (teamCount >= 5) {
+          return NextResponse.json(
+            { message: `Maximum limit of 5 participants in team "${teamName}" reached` },
+            { status: 400 }
+          );
+        }
+      }
+      
 
       // Create a new participant
       const newParticipant = new Participant({
