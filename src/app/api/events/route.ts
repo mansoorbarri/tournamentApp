@@ -60,13 +60,15 @@ export async function GET(req: Request) {
       {
         $lookup: {
           from: "participants",
-          let: { participantId: { 
-            $cond: { 
-              if: { $eq: [{ $type: "$participantsID" }, "string"] }, 
-              then: { $toObjectId: "$participantsID" }, 
-              else: "$participantsID" 
-            } 
-          } },
+          let: {
+            participantId: {
+              $cond: {
+                if: { $eq: [{ $type: "$participantsID" }, "string"] },
+                then: { $toObjectId: "$participantsID" },
+                else: "$participantsID"
+              }
+            }
+          },
           pipeline: [
             { $match: { $expr: { $eq: ["$participantsID", "$$participantId"] } } }
           ],
@@ -76,13 +78,15 @@ export async function GET(req: Request) {
       {
         $lookup: {
           from: "activities",
-          let: { activityId: { 
-            $cond: { 
-              if: { $eq: [{ $type: "$activityID" }, "string"] }, 
-              then: { $toObjectId: "$activityID" }, 
-              else: "$activityID" 
-            } 
-          } },
+          let: {
+            activityId: {
+              $cond: {
+                if: { $eq: [{ $type: "$activityID" }, "string"] },
+                then: { $toObjectId: "$activityID" },
+                else: "$activityID"
+              }
+            }
+          },
           pipeline: [
             { $match: { $expr: { $eq: ["$activityID", "$$activityId"] } } }
           ],
@@ -92,13 +96,15 @@ export async function GET(req: Request) {
       {
         $lookup: {
           from: "points",
-          let: { rankId: { 
-            $cond: { 
-              if: { $eq: [{ $type: "$rankID" }, "string"] }, 
-              then: { $toObjectId: "$rankID" }, 
-              else: "$rankID" 
-            } 
-          } },
+          let: {
+            rankId: {
+              $cond: {
+                if: { $eq: [{ $type: "$rankID" }, "string"] },
+                then: { $toObjectId: "$rankID" },
+                else: "$rankID"
+              }
+            }
+          },
           pipeline: [
             { $match: { $expr: { $eq: ["$rankID", "$$rankId"] } } }
           ],
@@ -108,35 +114,40 @@ export async function GET(req: Request) {
       {
         $lookup: {
           from: "eventtypes",
-          let: { eventTypeId: { 
-            $cond: { 
-              if: { $eq: [{ $type: "$eventTypeID" }, "string"] }, 
-              then: { $toObjectId: "$eventTypeID" }, 
-              else: "$eventTypeID" 
-            } 
-          } },
+          let: {
+            eventTypeId: {
+              $cond: {
+                if: { $eq: [{ $type: "$eventTypeID" }, "string"] },
+                then: { $toObjectId: "$eventTypeID" },
+                else: "$eventTypeID"
+              }
+            }
+          },
           pipeline: [
             { $match: { $expr: { $eq: ["$eventTypeID", "$$eventTypeId"] } } }
           ],
           as: "eventTypeDetails"
         }
       }
-    ]);
-    
+    ]).sort({eventID: 1});
+
     return new Response(JSON.stringify(events), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
       },
-    });    
+    });
   } catch (error) {
     console.error('Error fetching events:', error.message, error.stack);
-    return new Response(JSON.stringify({ error: 'Error fetching events', details: error.message }), {
+    return new Response(
+      JSON.stringify({ error: 'Error fetching events', details: error.message }),
+      {
         status: 500,
         headers: {
-            'Content-Type': 'application/json',
+          'Content-Type': 'application/json',
         },
-    });
+      }
+    );
   }
 }
 

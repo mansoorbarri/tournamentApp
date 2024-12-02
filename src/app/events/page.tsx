@@ -111,7 +111,7 @@ export default function EventsPage() {
       if (!response.ok) throw new Error("Failed to fetch events");
   
       const data = await response.json();
-      setEvents(data.sort((a: Event, b: Event) => a.eventID.toString().localeCompare(b.eventID.toString())));
+      setEvents(data);
     } catch (error) {
       toast({
         title: "Error fetching events",
