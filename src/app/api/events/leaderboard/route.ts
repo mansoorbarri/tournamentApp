@@ -91,26 +91,38 @@ export async function GET(req: Request) {
     );
 
     // Helper function to process leaderboard data
-    const processLeaderboard = (events, includeTeamName, isTeam = false) =>
-      events
-        .filter(event => {
-          const teamName = event.participant_lookup[0]?.teamName || "";
-          return isTeam
-            ? teamName.startsWith("Team ") // Include teams only
-            : teamName === includeTeamName; // Include "Individual" only
-        })
-        .map(event => {
-          const participant = event.participant_lookup[0];
-          const pointsAwarded = event.rankDetails[0]?.pointsAwarded || 0;
-
-          return {
-            participantID: participant?.participantsID || "N/A",
-            forename: participant?.forename || "Unknown",
-            surname: participant?.surname || "",
-            teamName: participant?.teamName || "",
-            totalPoints: pointsAwarded
-          };
-        });
+    const processLeaderboard = (events, includeTeamName, isTeam = false) => {
+      const leaderboardMap = new Map();
+    
+      events.forEach(event => {
+        const participant = event.participant_lookup[0];
+        const pointsAwarded = event.rankDetails[0]?.pointsAwarded || 0;
+    
+        if (!participant) return;
+    
+        const key = isTeam ? participant.teamName : participant.participantsID;
+    
+        if (!leaderboardMap.has(key)) {
+          leaderboardMap.set(key, {
+            participantID: participant.participantsID || "N/A",
+            forename: participant.forename || (isTeam ? "" : "Unknown"),
+            surname: participant.surname || (isTeam ? "" : ""),
+            teamName: participant.teamName || "",
+            totalPoints: 0, // Initialize points
+          });
+        }
+    
+        // Accumulate points
+        const currentEntry = leaderboardMap.get(key);
+        currentEntry.totalPoints += pointsAwarded;
+      });
+    
+      // Convert map values to an array and sort by total points descending
+      return Array.from(leaderboardMap.values()).sort(
+        (a, b) => b.totalPoints - a.totalPoints
+      );
+    };
+    
 
     // Process leaderboards
     const singleIndividualLeaderboard = processLeaderboard(
