@@ -1,12 +1,12 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 interface IEventType extends Document {
-  eventTypeID: string;
+  eventTypeID: number;
   description: string;
 }
 
 const EventTypeSchema: Schema = new Schema({
-  eventTypeID: { type: String, required: true, unique: true },
+  eventTypeID: { type: Number, required: true, unique: true },
   description: { type: String, required: true }
 });
 
